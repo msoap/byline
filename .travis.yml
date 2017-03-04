@@ -11,6 +11,7 @@ go:
   - master
 
 before_install:
+  - go get -t ./...
   - go get github.com/mattn/goveralls
   - go get github.com/philwinder/gocoverage
   - go get github.com/kisielk/errcheck
