@@ -63,10 +63,9 @@ func (lr *Reader) Read(p []byte) (n int, err error) {
 
 // Map - set filter function for process each line
 func (lr *Reader) Map(filterFn func(line []byte) []byte) *Reader {
-	lr.filterFuncs = append(lr.filterFuncs, func(line []byte) ([]byte, error) {
+	return lr.MapErr(func(line []byte) ([]byte, error) {
 		return filterFn(line), nil
 	})
-	return lr
 }
 
 // MapErr - set filter function for process each line, returns error if needed (io.EOF for example)

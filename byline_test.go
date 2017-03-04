@@ -99,10 +99,7 @@ func TestGrep(t *testing.T) {
 	i := 0
 	lr := byline.NewReader(reader).Grep(func(line []byte) bool {
 		i++
-		if i == 2 {
-			return false
-		}
-		return true
+		return !(i == 2)
 	})
 
 	result, err := ioutil.ReadAll(lr)
@@ -114,10 +111,7 @@ func TestGrepString(t *testing.T) {
 	reader := strings.NewReader("111\n222\n333")
 
 	lr := byline.NewReader(reader).GrepString(func(line string) bool {
-		if strings.HasPrefix(line, "222\n") {
-			return false
-		}
-		return true
+		return !strings.HasPrefix(line, "222\n")
 	})
 
 	result, err := ioutil.ReadAll(lr)
