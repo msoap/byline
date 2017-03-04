@@ -5,7 +5,6 @@ package byline
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"regexp"
 )
@@ -18,13 +17,7 @@ var (
 )
 
 // Reader - line by line Reader
-type Reader interface {
-	io.Reader
-
-	MapErr(func(line []byte) ([]byte, error)) Reader
-}
-
-type linesReader struct {
+type Reader struct {
 	bufReader   *bufio.Reader
 	filterFuncs []func(line []byte) ([]byte, error)
 	awkVars     AWKVars
@@ -39,8 +32,8 @@ type AWKVars struct {
 }
 
 // NewReader - get new line by line Reader
-func NewReader(reader io.Reader) Reader {
-	return &linesReader{
+func NewReader(reader io.Reader) *Reader {
+	return &Reader{
 		bufReader: bufio.NewReader(reader),
 		awkVars: AWKVars{
 			RS: defaultRS,
@@ -50,10 +43,9 @@ func NewReader(reader io.Reader) Reader {
 }
 
 // Read - implement io.Reader interface
-func (lr *linesReader) Read(p []byte) (n int, err error) {
+func (lr *Reader) Read(p []byte) (n int, err error) {
 	lineBytes, bufErr := lr.bufReader.ReadBytes(lr.awkVars.RS)
 	lr.awkVars.NR++
-	fmt.Printf("NR: %d, %s", lr.awkVars.NR, string(lineBytes))
 
 	var filterErr error
 	for _, filterFunc := range lr.filterFuncs {
@@ -67,8 +59,8 @@ func (lr *linesReader) Read(p []byte) (n int, err error) {
 	return len(lineBytes), bufErr
 }
 
-// MapErr - set filter function for process one line
-func (lr *linesReader) MapErr(filterFn func(line []byte) ([]byte, error)) Reader {
+// MapErr - set filter function for process each line
+func (lr *Reader) MapErr(filterFn func(line []byte) ([]byte, error)) *Reader {
 	lr.filterFuncs = append(lr.filterFuncs, filterFn)
 	return lr
 }
