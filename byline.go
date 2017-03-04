@@ -49,6 +49,7 @@ func NewReader(reader io.Reader) Reader {
 	}
 }
 
+// Read - implement io.Reader interface
 func (lr *linesReader) Read(p []byte) (n int, err error) {
 	lineBytes, bufErr := lr.bufReader.ReadBytes(lr.awkVars.RS)
 	lr.awkVars.NR++
@@ -66,6 +67,7 @@ func (lr *linesReader) Read(p []byte) (n int, err error) {
 	return len(lineBytes), bufErr
 }
 
+// MapErr - set filter function for process one line
 func (lr *linesReader) MapErr(filterFn func(line []byte) ([]byte, error)) Reader {
 	lr.filterFuncs = append(lr.filterFuncs, filterFn)
 	return lr
