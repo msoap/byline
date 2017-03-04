@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	// Error for AWK mode, for skip current line
+	// ErrOmitLine - error for Grep/AWK mode, for omit current line
 	ErrOmitLine = errors.New("ErrOmitLine")
 
 	// default field separator
@@ -57,8 +57,14 @@ func (lr *Reader) Read(p []byte) (n int, err error) {
 	var filterErr error
 	for _, filterFunc := range lr.filterFuncs {
 		lineBytes, filterErr = filterFunc(lineBytes)
-		if bufErr != io.EOF && filterErr != nil {
-			bufErr = filterErr
+		if filterErr != nil {
+			switch {
+			case filterErr == ErrOmitLine:
+				lineBytes = nullBytes
+			case filterErr != nil:
+				bufErr = filterErr
+			}
+			break
 		}
 	}
 
@@ -96,13 +102,13 @@ func (lr *Reader) MapStringErr(filterFn func(string) (string, error)) *Reader {
 
 // Grep - grep lines by func
 func (lr *Reader) Grep(filterFn func([]byte) bool) *Reader {
-	lr.filterFuncs = append(lr.filterFuncs, func(line []byte) ([]byte, error) {
+	return lr.MapErr(func(line []byte) ([]byte, error) {
 		if filterFn(line) {
 			return line, nil
 		}
-		return nullBytes, nil
+
+		return nullBytes, ErrOmitLine
 	})
-	return lr
 }
 
 // GrepString - grep lines as string by func
@@ -131,6 +137,7 @@ func (lr *Reader) SetFS(fs *regexp.Regexp) *Reader {
 	return lr
 }
 
+// AWKMode - process lines with AWK like mode
 func (lr *Reader) AWKMode(filterFn func(string, []string, AWKVars) (string, error)) *Reader {
 	return lr.MapStringErr(func(line string) (string, error) {
 		addRS := ""
@@ -139,14 +146,10 @@ func (lr *Reader) AWKMode(filterFn func(string, []string, AWKVars) (string, erro
 		}
 
 		line = strings.TrimSuffix(line, string(lr.awkVars.RS))
-		fields := lr.awkVars.FS.Split(string(line), -1)
+		fields := lr.awkVars.FS.Split(line, -1)
 		lr.awkVars.NF = len(fields)
 		result, err := filterFn(line, fields, lr.awkVars)
-		switch err {
-		case nil:
-		case ErrOmitLine:
-			return "", nil
-		default:
+		if err != nil {
 			return "", err
 		}
 
