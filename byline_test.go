@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -127,4 +128,45 @@ func TestGrepByRegexp(t *testing.T) {
 	result, err := ioutil.ReadAll(lr)
 	require.NoError(t, err)
 	require.Equal(t, "111\n222\n", string(result))
+}
+
+func TestAWKMode(t *testing.T) {
+	reader := strings.NewReader(`1,name one,12.3#2,second row;7.1#3,three row;15.51`)
+
+	lr := byline.NewReader(reader).
+		SetRS('#').
+		SetFS(regexp.MustCompile(`,|;`)).
+		AWKMode(func(line string, fields []string, vars byline.AWKVars) (string, error) {
+			if vars.NF < 3 {
+				return "", fmt.Errorf("csv parse failed for %q", line)
+			}
+
+			if price, err := strconv.ParseFloat(fields[2], 10); err != nil {
+				return "", err
+			} else if price < 10 {
+				return "", byline.ErrOmitLine
+			}
+
+			return fmt.Sprintf("%s/%d - %s", fields[0], vars.NR, fields[1]), nil
+		})
+
+	result, err := ioutil.ReadAll(lr)
+	require.NoError(t, err)
+	require.Equal(t, "1/1 - name one#3/3 - three row", string(result))
+}
+
+func TestAWKModeWithError(t *testing.T) {
+	reader := strings.NewReader(`1 name_one 12.3#2 error_row#3 three row  15.51`)
+
+	lr := byline.NewReader(reader).
+		SetRS('#').
+		AWKMode(func(line string, fields []string, vars byline.AWKVars) (string, error) {
+			if vars.NF < 3 {
+				return "", fmt.Errorf("csv parse failed for %q", line)
+			}
+			return fields[0] + " - " + fields[1], nil
+		})
+
+	_, err := ioutil.ReadAll(lr)
+	require.Error(t, err)
 }
