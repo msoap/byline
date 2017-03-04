@@ -92,3 +92,45 @@ func TestMapStringErr(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "1. 111\n2. 222\n", string(result))
 }
+
+func TestGrep(t *testing.T) {
+	reader := strings.NewReader("111\n222\n333")
+
+	i := 0
+	lr := byline.NewReader(reader).Grep(func(line []byte) bool {
+		i++
+		if i == 2 {
+			return false
+		}
+		return true
+	})
+
+	result, err := ioutil.ReadAll(lr)
+	require.NoError(t, err)
+	require.Equal(t, "111\n333", string(result))
+}
+
+func TestGrepString(t *testing.T) {
+	reader := strings.NewReader("111\n222\n333")
+
+	lr := byline.NewReader(reader).GrepString(func(line string) bool {
+		if strings.HasPrefix(line, "222\n") {
+			return false
+		}
+		return true
+	})
+
+	result, err := ioutil.ReadAll(lr)
+	require.NoError(t, err)
+	require.Equal(t, "111\n333", string(result))
+}
+
+func TestGrepByRegexp(t *testing.T) {
+	reader := strings.NewReader("111\n222\n333")
+
+	lr := byline.NewReader(reader).GrepByRegexp(regexp.MustCompile(`111|222`))
+
+	result, err := ioutil.ReadAll(lr)
+	require.NoError(t, err)
+	require.Equal(t, "111\n222\n", string(result))
+}

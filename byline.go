@@ -14,6 +14,8 @@ var (
 	defaultFS = regexp.MustCompile(`\s+`)
 	// default line separator
 	defaultRS byte = '\n'
+	// for Grep* methods
+	nullBytes = []byte{}
 )
 
 // Reader - line by line Reader
@@ -88,4 +90,29 @@ func (lr *Reader) MapStringErr(filterFn func(line string) (string, error)) *Read
 		return []byte(newString), err
 	})
 	return lr
+}
+
+// Grep - grep lines by func
+func (lr *Reader) Grep(filterFn func(line []byte) bool) *Reader {
+	lr.filterFuncs = append(lr.filterFuncs, func(line []byte) ([]byte, error) {
+		if filterFn(line) {
+			return line, nil
+		}
+		return nullBytes, nil
+	})
+	return lr
+}
+
+// GrepString - grep lines as string by func
+func (lr *Reader) GrepString(filterFn func(line string) bool) *Reader {
+	return lr.Grep(func(line []byte) bool {
+		return filterFn(string(line))
+	})
+}
+
+// GrepByRegexp - grep lines by regexp
+func (lr *Reader) GrepByRegexp(re *regexp.Regexp) *Reader {
+	return lr.Grep(func(line []byte) bool {
+		return re.Match(line)
+	})
 }
