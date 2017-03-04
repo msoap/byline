@@ -72,3 +72,20 @@ func (lr *Reader) MapErr(filterFn func(line []byte) ([]byte, error)) *Reader {
 	lr.filterFuncs = append(lr.filterFuncs, filterFn)
 	return lr
 }
+
+// MapString - set filter function for process each line as string
+func (lr *Reader) MapString(filterFn func(line string) string) *Reader {
+	lr.filterFuncs = append(lr.filterFuncs, func(line []byte) ([]byte, error) {
+		return []byte(filterFn(string(line))), nil
+	})
+	return lr
+}
+
+// MapStringErr - set filter function for process each line as string, returns error if needed (io.EOF for example)
+func (lr *Reader) MapStringErr(filterFn func(line string) (string, error)) *Reader {
+	lr.filterFuncs = append(lr.filterFuncs, func(line []byte) ([]byte, error) {
+		newString, err := filterFn(string(line))
+		return []byte(newString), err
+	})
+	return lr
+}
