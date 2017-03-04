@@ -1,0 +1,25 @@
+language: go
+sudo: false
+
+env:
+  global:
+    - CURRENT_GO_VERSION="1.8"
+
+go:
+  - 1.7.x
+  - 1.8.x
+  - master
+
+before_install:
+  - go get github.com/mattn/goveralls
+  - go get github.com/philwinder/gocoverage
+  - go get github.com/kisielk/errcheck
+
+script:
+  - go test -race -v ./...
+  - go vet ./...
+  - errcheck ./...
+  - diff <(gofmt -d .) <(echo -n "")
+  - if [[ $TRAVIS_GO_VERSION =~ $CURRENT_GO_VERSION ]]; then
+      gocoverage && goveralls -coverprofile=profile.cov -service=travis-ci || true;
+    fi
