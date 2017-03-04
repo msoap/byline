@@ -13,10 +13,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestMap(t *testing.T) {
+	reader := strings.NewReader("111\n222\n333")
+
+	i := 1
+	lr := byline.NewReader(reader).Map(func(line []byte) []byte {
+		newLine := fmt.Sprintf("%d. %s", i, string(line))
+		i++
+		return []byte(newLine)
+	})
+
+	result, err := ioutil.ReadAll(lr)
+	require.NoError(t, err)
+	require.Equal(t, "1. 111\n2. 222\n3. 333", string(result))
+}
+
 func TestMapErr(t *testing.T) {
 	reader := strings.NewReader("111\n222\n333")
 
-	i := 0
+	i := 1
 	lr := byline.NewReader(reader).MapErr(func(line []byte) ([]byte, error) {
 		newLine := fmt.Sprintf("(%d) %s", i, string(line))
 		i++
@@ -27,7 +42,7 @@ func TestMapErr(t *testing.T) {
 
 	result, err := ioutil.ReadAll(lr)
 	require.NoError(t, err)
-	require.Equal(t, "(0) 111 suf\n(1) 222 suf\n(2) 333 suf\n", string(result))
+	require.Equal(t, "(1) 111 suf\n(2) 222 suf\n(3) 333 suf\n", string(result))
 }
 
 // truncate stream

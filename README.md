@@ -7,10 +7,10 @@ Example, add line number to each line and add suffix at the end:
     // or reader, err := os.Open("file")
 
 	i := 1
-	blr := byline.NewReader(reader).MapErr(func(line []byte) ([]byte, error) {
+	blr := byline.NewReader(reader).Map(func(line []byte) []byte {
 		newLine := fmt.Sprintf("(%d) %s", i, string(line))
 		i++
-		return []byte(newLine), nil
+		return []byte(newLine)
 	}).MapErr(func(line []byte) ([]byte, error) {
 		return regexp.MustCompile(`\n?$`).ReplaceAll(line, []byte(" suf\n")), nil
 	})
