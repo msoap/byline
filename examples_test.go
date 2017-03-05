@@ -89,7 +89,7 @@ func ExampleReader_Grep() {
 		return
 	}
 
-	// get all types ffrom Go-source
+	// get all types from Go-source
 	sm := StateMachine{
 		beginRe: regexp.MustCompile(`^type `),
 		endRe:   regexp.MustCompile(`^}\s+$`),

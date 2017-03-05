@@ -18,3 +18,67 @@ Example, add line number to each line and add suffix at the end:
 	result, err := ioutil.ReadAll(blr)
 
 ```
+
+<details><summary>Example grep Go types from source:</summary>
+```Go
+type StateMachine struct {
+	beginRe *regexp.Regexp
+	endRe   *regexp.Regexp
+	inBlock bool
+}
+
+func (sm *StateMachine) SMFilter(line []byte) bool {
+	switch {
+	case sm.beginRe.Match(line):
+		sm.inBlock = true
+		return true
+	case sm.inBlock && sm.endRe.Match(line):
+		sm.inBlock = false
+		return true
+	default:
+		return sm.inBlock
+	}
+}
+
+func ExampleReader_Grep() {
+	file, err := os.Open("byline.go")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// get all types from Go-source
+	sm := StateMachine{
+		beginRe: regexp.MustCompile(`^type `),
+		endRe:   regexp.MustCompile(`^}\s+$`),
+	}
+
+	lr := byline.NewReader(file).Grep(sm.SMFilter).Map(func(line []byte) []byte {
+		// and remove comments
+		return regexp.MustCompile(`\s+//.+`).ReplaceAll(line, []byte{})
+	})
+
+	result, err := ioutil.ReadAll(lr)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Print(string(result))
+}
+```
+Output:
+```
+type Reader struct {
+	bufReader   *bufio.Reader
+	filterFuncs []func(line []byte) ([]byte, error)
+	awkVars     AWKVars
+}
+type AWKVars struct {
+	NR int
+	NF int
+	RS byte
+	FS *regexp.Regexp
+}
+```
+</details>
