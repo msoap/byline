@@ -138,9 +138,9 @@ func (lr *Reader) SetFS(fs *regexp.Regexp) *Reader {
 // AWKMode - process lines with AWK like mode
 func (lr *Reader) AWKMode(filterFn func(line string, fields []string, vars AWKVars) (string, error)) *Reader {
 	return lr.MapStringErr(func(line string) (string, error) {
-		addRS := ""
+		addRS := false
 		if strings.HasSuffix(line, string(lr.awkVars.RS)) {
-			addRS = string(lr.awkVars.RS)
+			addRS = true
 			line = strings.TrimSuffix(line, string(lr.awkVars.RS))
 		}
 
@@ -151,8 +151,8 @@ func (lr *Reader) AWKMode(filterFn func(line string, fields []string, vars AWKVa
 			return "", err
 		}
 
-		if !strings.HasSuffix(result, string(lr.awkVars.RS)) && addRS != "" {
-			result += addRS
+		if !strings.HasSuffix(result, string(lr.awkVars.RS)) && addRS {
+			result += string(lr.awkVars.RS)
 		}
 		return result, nil
 	})
