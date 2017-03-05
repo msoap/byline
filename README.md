@@ -168,7 +168,7 @@ Price sum: 27.81 nil
 ```
 </details>
 
-## Overheads:
+## Overheads
 
     ❯ make benchmark
     go test -benchtime 5s -benchmem -bench .
