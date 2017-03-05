@@ -1,4 +1,4 @@
-package byline
+package byline_test
 
 import (
 	"fmt"
@@ -8,9 +8,11 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/msoap/byline"
 )
 
-func ExampleCSVParse() {
+func ExampleReader_AWKMode() {
 	reader := strings.NewReader(`ID,NAME,PRICE
 A001,name one,12.3
 A002,second row;7.1
@@ -20,12 +22,12 @@ Some text
 `)
 
 	sum := 0.0
-	lr := NewReader(reader).
+	lr := byline.NewReader(reader).
 		SetFS(regexp.MustCompile(`,|;`)).
-		AWKMode(func(line string, fields []string, vars AWKVars) (string, error) {
+		AWKMode(func(line string, fields []string, vars byline.AWKVars) (string, error) {
 			if vars.NR == 1 {
 				// skip first line
-				return "", ErrOmitLine
+				return "", byline.ErrOmitLine
 			}
 
 			if vars.NF > 0 && strings.HasPrefix(fields[0], "Total:") {
@@ -40,7 +42,7 @@ Some text
 			if price, err := strconv.ParseFloat(fields[2], 10); err != nil {
 				return "", err
 			} else if price < 10 {
-				return "", ErrOmitLine
+				return "", byline.ErrOmitLine
 			} else {
 				sum += price
 			}
@@ -80,7 +82,7 @@ func (sm *StateMachine) SMFilter(line []byte) bool {
 	}
 }
 
-func ExampleParseGoFile() {
+func ExampleReader_Grep() {
 	file, err := os.Open("byline.go")
 	if err != nil {
 		fmt.Println(err)
@@ -93,7 +95,7 @@ func ExampleParseGoFile() {
 		endRe:   regexp.MustCompile(`^}\s+$`),
 	}
 
-	lr := NewReader(file).Grep(sm.SMFilter).Map(func(line []byte) []byte {
+	lr := byline.NewReader(file).Grep(sm.SMFilter).Map(func(line []byte) []byte {
 		// and remove comments
 		return regexp.MustCompile(`\s+//.+`).ReplaceAll(line, []byte{})
 	})
