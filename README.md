@@ -1,7 +1,57 @@
 # byline Reader [![GoDoc](https://godoc.org/github.com/msoap/byline?status.svg)](https://godoc.org/github.com/msoap/byline) [![Build Status](https://travis-ci.org/msoap/byline.svg?branch=master)](https://travis-ci.org/msoap/byline) [![Coverage Status](https://coveralls.io/repos/github/msoap/byline/badge.svg?branch=master)](https://coveralls.io/github/msoap/byline?branch=master) [![Sourcegraph](https://sourcegraph.com/github.com/msoap/byline/-/badge.svg)](https://sourcegraph.com/github.com/msoap/byline?badge) [![Report Card](https://goreportcard.com/badge/github.com/msoap/byline)](https://goreportcard.com/report/github.com/msoap/byline)
-Convert Go Reader to line-by-line Reader
 
-Example, add line number to each line and add suffix at the end:
+Convert Go Reader to line-by-line Reader. Now you can to add UNIX text processing principles to its Reader (awk, grep, sed ...).
+
+## Install
+
+`go get -u github.com/msoap/byline`
+
+## Usage
+
+```Go
+import "github.com/msoap/byline"
+
+// Create new line-by-line Reader from io.Reader:
+lr := byline.NewReader(reader)
+
+// Add to the Reader stack of a filter functions:
+lr.MapString(func(line string) string {return "prefix_" + line}).GrepByRegexp(regexp.MustCompile("only this"))
+
+// Read all content
+result, err := lr.ReadAll()
+
+// Or in one place
+result, err := byline.NewReader(reader).MapString(func(line string) string {return "prefix_" + line}).ReadAll()
+```
+
+## Filter functions
+
+  * `Map(filterFn func([]byte) []byte)` - process each line as `[]byte`
+  * `MapErr(filterFn func([]byte) ([]byte, error))` - process each line as `[]byte`, and you can return error, `io.EOF` or custom
+  * `MapString(filterFn func(string) string)` - process each line as `string`
+  * `MapStringErr(filterFn func(string) (string, error))` - process each line as `string`, and you can return error
+  * `Grep(filterFn func([]byte) bool)` - grep lines by function
+  * `GrepString(filterFn func(string) bool)` - grep lines as `string` by function
+  * `GrepByRegexp(re *regexp.Regexp)` - grep lines by regexp
+  * `AWKMode(filterFn func(line string, fields []string, vars AWKVars) (string, error))` - process each line in AWK mode.
+    In addition to current line, `filterFn` gets slice with fields splitted by separator (default is `/\s+/`) and vars releated to awk (`NR`, `NF`, `RS`, `FS`)
+
+`Map*Err`, `AWKMode` methods can return `byline.ErrOmitLine` error for discard curent processing line.
+
+## Helper methods
+
+  * `SetRS(rs byte)` - set line (record) separator, default is newline - `\n`
+  * `SetFS(fs *regexp.Regexp)` - set field separator for AWK mode, default is `\s+`
+  * `Discard()` - read all content from Reader for side effect from filter functions
+  * `ReadAll() ([]byte, error)` - read all content to slice of bytes
+  * `ReadAllSlice() ([][]byte, error)` - read all content by lines to `[][]byte`
+  * `ReadAllString() (string, error)` - read all content to string
+  * `ReadAllSliceString() ([]string, error)` - read all content by lines to slice of string
+
+## Examples
+
+Add line number to each line and add suffix at the end:
+
 ```Go
 	reader := strings.NewReader("111\n222\n333")
     // or read file
@@ -13,8 +63,8 @@ Example, add line number to each line and add suffix at the end:
 	blr := byline.NewReader(reader).MapString(func(line string) string {
 		i++
 		return fmt.Sprintf("(%d) %s", i, string(line))
-	}).MapErr(func(line []byte) ([]byte, error) {
-		return regexp.MustCompile(`\n?$`).ReplaceAll(line, []byte(" suf\n")), nil
+	}).Map(func(line []byte) []byte {
+		return regexp.MustCompile(`\n?$`).ReplaceAll(line, []byte(" suf\n"))
 	})
 
 	result, err := blr.ReadAll()
@@ -49,7 +99,7 @@ func ExampleReader_Grep() {
 		return
 	}
 
-	// get all types from Go-source
+	// get all lines between "^type..." and "^}"
 	sm := StateMachine{
 		beginRe: regexp.MustCompile(`^type `),
 		endRe:   regexp.MustCompile(`^}\s+$`),
@@ -84,3 +134,41 @@ type AWKVars struct {
 }
 ```
 </details>
+
+<details><summary>Example of AWK mode, summarize third column with filter (>10.0):</summary>
+```Go
+    // CSV with "#" instead of "\n"
+	reader := strings.NewReader(`1,name one,12.3#2,second row;7.1#3,three row;15.51`)
+
+	sum := 0.0
+	err := byline.NewReader(reader).
+		SetRS('#').
+		SetFS(regexp.MustCompile(`,|;`)).
+		AWKMode(func(line string, fields []string, vars byline.AWKVars) (string, error) {
+			if vars.NF < 3 {
+				return "", fmt.Errorf("csv parse failed for %q", line)
+			}
+
+			if price, err := strconv.ParseFloat(fields[2], 10); err != nil {
+				return "", err
+			} else if price < 10 {
+				return "", byline.ErrOmitLine
+			} else {
+				sum += price
+				return "", nil
+			}
+		}).Discard()
+
+	fmt.Println("Price sum:", sum, err)
+
+```
+Output:
+```
+Price sum: 27.81 nil
+```
+</details>
+
+## See also
+
+  * [io](https://golang.org/pkg/io/), [ioutil](https://golang.org/pkg/io/ioutil/), [bufio](https://golang.org/pkg/bufio/) - Go packages for work with Readers
+  * [AWK](https://en.wikipedia.org/wiki/AWK) - programming language and great UNIX tool

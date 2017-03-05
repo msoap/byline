@@ -88,7 +88,7 @@ func ExampleReader_Grep() {
 		return
 	}
 
-	// get all types from Go-source
+	// get all lines between "^type..." and "^}"
 	sm := StateMachine{
 		beginRe: regexp.MustCompile(`^type `),
 		endRe:   regexp.MustCompile(`^}\s+$`),

@@ -161,7 +161,7 @@ func (lr *Reader) AWKMode(filterFn func(line string, fields []string, vars AWKVa
 	})
 }
 
-// Discard - read all content from Reader for side effect from all filter functions
+// Discard - read all content from Reader for side effect from filter functions
 func (lr *Reader) Discard() error {
 	_, err := io.Copy(ioutil.Discard, lr)
 	return err
