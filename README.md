@@ -4,18 +4,20 @@ Convert Go Reader to line-by-line Reader
 Example, add line number to each line and add suffix at the end:
 ```Go
 	reader := strings.NewReader("111\n222\n333")
-    // or reader, err := os.Open("file")
+    // or read file
+    reader, err := os.Open("file.txt")
+    // or process response from HTTP client
+    reader := httpResponse.Body
 
-	i := 1
-	blr := byline.NewReader(reader).Map(func(line []byte) []byte {
-		newLine := fmt.Sprintf("(%d) %s", i, string(line))
+	i := 0
+	blr := byline.NewReader(reader).MapString(func(line string) string {
 		i++
-		return []byte(newLine)
+		return fmt.Sprintf("(%d) %s", i, string(line))
 	}).MapErr(func(line []byte) ([]byte, error) {
 		return regexp.MustCompile(`\n?$`).ReplaceAll(line, []byte(" suf\n")), nil
 	})
 
-	result, err := ioutil.ReadAll(blr)
+	result, err := blr.ReadAll()
 
 ```
 
@@ -53,18 +55,18 @@ func ExampleReader_Grep() {
 		endRe:   regexp.MustCompile(`^}\s+$`),
 	}
 
-	lr := byline.NewReader(file).Grep(sm.SMFilter).Map(func(line []byte) []byte {
+	blr := byline.NewReader(file).Grep(sm.SMFilter).Map(func(line []byte) []byte {
 		// and remove comments
 		return regexp.MustCompile(`\s+//.+`).ReplaceAll(line, []byte{})
 	})
 
-	result, err := ioutil.ReadAll(lr)
+	result, err := blr.ReadAllString()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Print(string(result))
+	fmt.Print(result)
 }
 ```
 Output:

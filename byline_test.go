@@ -170,3 +170,55 @@ func TestAWKModeWithError(t *testing.T) {
 	_, err := ioutil.ReadAll(lr)
 	require.Error(t, err)
 }
+
+func TestReadAll(t *testing.T) {
+	t.Run("ReadAll", func(t *testing.T) {
+		reader := strings.NewReader(`1 name_one 12.3#2 error_row#3 three row  15.51#4 row#5 row end`)
+		result, err := byline.NewReader(reader).
+			SetRS('#').
+			MapString(func(line string) string { return "<" + line }).
+			ReadAll()
+		require.NoError(t, err)
+		require.EqualValues(t, "<1 name_one 12.3#<2 error_row#<3 three row  15.51#<4 row#<5 row end", result)
+	})
+
+	t.Run("ReadAllString", func(t *testing.T) {
+		reader := strings.NewReader(`1 name_one 12.3#2 error_row#3 three row  15.51#4 row#5 row end`)
+		result, err := byline.NewReader(reader).
+			SetRS('#').
+			MapString(func(line string) string { return "<" + line }).
+			ReadAllString()
+		require.NoError(t, err)
+		require.EqualValues(t, "<1 name_one 12.3#<2 error_row#<3 three row  15.51#<4 row#<5 row end", result)
+	})
+
+	t.Run("ReadAllSlice", func(t *testing.T) {
+		reader := strings.NewReader(`1 name_one 12.3#2 error_row#`)
+		result, err := byline.NewReader(reader).
+			SetRS('#').
+			MapString(func(line string) string { return "<" + line }).
+			ReadAllSlice()
+		require.NoError(t, err)
+		require.EqualValues(t, [][]byte{[]byte("<1 name_one 12.3#"), []byte("<2 error_row#"), []byte("<")}, result)
+	})
+
+	t.Run("ReadAllSliceString", func(t *testing.T) {
+		reader := strings.NewReader(`1 name_one 12.3#2 error_row`)
+		result, err := byline.NewReader(reader).
+			SetRS('#').
+			MapString(func(line string) string { return "<" + line }).
+			ReadAllSliceString()
+		require.NoError(t, err)
+		require.EqualValues(t, []string{"<1 name_one 12.3#", "<2 error_row"}, result)
+	})
+
+	t.Run("ReadAllSliceStringWithLastEmptyLine", func(t *testing.T) {
+		reader := strings.NewReader(`1 name_one 12.3#2 error_row#`)
+		result, err := byline.NewReader(reader).
+			SetRS('#').
+			MapString(func(line string) string { return "<" + line }).
+			ReadAllSliceString()
+		require.NoError(t, err)
+		require.EqualValues(t, []string{"<1 name_one 12.3#", "<2 error_row#", "<"}, result)
+	})
+}

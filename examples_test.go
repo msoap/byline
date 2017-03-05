@@ -3,7 +3,6 @@ package byline_test
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strconv"
@@ -50,13 +49,13 @@ Some text
 			return fmt.Sprintf("line:%d. %s - %s", vars.NR, fields[0], fields[1]), nil
 		})
 
-	result, err := ioutil.ReadAll(lr)
+	result, err := lr.ReadAllString()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Print(string(result))
+	fmt.Print(result)
 	fmt.Printf("Sum: %.2f", sum)
 	// Output: line:2. A001 - name one
 	// line:4. A003 - three row
@@ -100,13 +99,13 @@ func ExampleReader_Grep() {
 		return regexp.MustCompile(`\s+//.+`).ReplaceAll(line, []byte{})
 	})
 
-	result, err := ioutil.ReadAll(lr)
+	result, err := lr.ReadAllString()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Print("\n" + string(result))
+	fmt.Print("\n" + result)
 	// Output:
 	// type Reader struct {
 	// 	bufReader   *bufio.Reader

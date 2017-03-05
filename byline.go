@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"errors"
 	"io"
+	"io/ioutil"
 	"regexp"
 	"strings"
 )
@@ -158,4 +159,43 @@ func (lr *Reader) AWKMode(filterFn func(line string, fields []string, vars AWKVa
 		}
 		return result, nil
 	})
+}
+
+// Discard - read all content from Reader for side effect from all filter functions
+func (lr *Reader) Discard() error {
+	_, err := io.Copy(ioutil.Discard, lr)
+	return err
+}
+
+// ReadAllSlice - read all content from Reader to []byte slice by lines
+func (lr *Reader) ReadAllSlice() ([][]byte, error) {
+	result := [][]byte{}
+	err := lr.Map(func(line []byte) []byte {
+		result = append(result, line)
+		return nullBytes
+	}).Discard()
+
+	return result, err
+}
+
+// ReadAll - read all content from Reader to slice of bytes
+func (lr *Reader) ReadAll() ([]byte, error) {
+	return ioutil.ReadAll(lr)
+}
+
+// ReadAllSliceString - read all content from Reader to string slice by lines
+func (lr *Reader) ReadAllSliceString() ([]string, error) {
+	result := []string{}
+	err := lr.MapString(func(line string) string {
+		result = append(result, line)
+		return ""
+	}).Discard()
+
+	return result, err
+}
+
+// ReadAllString - read all content from Reader to one string
+func (lr *Reader) ReadAllString() (string, error) {
+	result, err := ioutil.ReadAll(lr)
+	return string(result), err
 }
