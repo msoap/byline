@@ -121,7 +121,7 @@ func TestGrepString(t *testing.T) {
 }
 
 func TestGrepByRegexp(t *testing.T) {
-	reader := strings.NewReader("111\n222\n333")
+	reader := strings.NewReader("111\n222\n333\n")
 
 	lr := byline.NewReader(reader).GrepByRegexp(regexp.MustCompile(`111|222`))
 
