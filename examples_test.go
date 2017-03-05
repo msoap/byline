@@ -1,4 +1,4 @@
-package byline_test
+package byline
 
 import (
 	"fmt"
@@ -8,8 +8,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/msoap/byline"
 )
 
 func ExampleCSVParse() {
@@ -22,12 +20,12 @@ Some text
 `)
 
 	sum := 0.0
-	lr := byline.NewReader(reader).
+	lr := NewReader(reader).
 		SetFS(regexp.MustCompile(`,|;`)).
-		AWKMode(func(line string, fields []string, vars byline.AWKVars) (string, error) {
+		AWKMode(func(line string, fields []string, vars AWKVars) (string, error) {
 			if vars.NR == 1 {
 				// skip first line
-				return "", byline.ErrOmitLine
+				return "", ErrOmitLine
 			}
 
 			if vars.NF > 0 && strings.HasPrefix(fields[0], "Total:") {
@@ -42,7 +40,7 @@ Some text
 			if price, err := strconv.ParseFloat(fields[2], 10); err != nil {
 				return "", err
 			} else if price < 10 {
-				return "", byline.ErrOmitLine
+				return "", ErrOmitLine
 			} else {
 				sum += price
 			}
@@ -95,7 +93,7 @@ func ExampleParseGoFile() {
 		endRe:   regexp.MustCompile(`^}\s+$`),
 	}
 
-	lr := byline.NewReader(file).Grep(sm.SMFilter).Map(func(line []byte) []byte {
+	lr := NewReader(file).Grep(sm.SMFilter).Map(func(line []byte) []byte {
 		// and remove comments
 		return regexp.MustCompile(`\s+//.+`).ReplaceAll(line, []byte{})
 	})
