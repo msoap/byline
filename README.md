@@ -1,6 +1,6 @@
 # byline Reader [![GoDoc](https://godoc.org/github.com/msoap/byline?status.svg)](https://godoc.org/github.com/msoap/byline) [![Build Status](https://travis-ci.org/msoap/byline.svg?branch=master)](https://travis-ci.org/msoap/byline) [![Coverage Status](https://coveralls.io/repos/github/msoap/byline/badge.svg?branch=master)](https://coveralls.io/github/msoap/byline?branch=master) [![Sourcegraph](https://sourcegraph.com/github.com/msoap/byline/-/badge.svg)](https://sourcegraph.com/github.com/msoap/byline?badge) [![Report Card](https://goreportcard.com/badge/github.com/msoap/byline)](https://goreportcard.com/report/github.com/msoap/byline)
 
-Go library for convert Reader to line-by-line Reader. Now you can to add UNIX text processing principles to its Reader (like with awk, grep, sed ...).
+Go library for convert Reader to line-by-line Reader. Now you can add UNIX text processing principles to its Reader (like with awk, grep, sed ...).
 
 ## Install
 
@@ -26,17 +26,17 @@ result, err := byline.NewReader(reader).MapString(func(line string) string {retu
 
 ## Filter functions
 
-  * `Map(filterFn func([]byte) []byte)` - process each line as `[]byte`
-  * `MapErr(filterFn func([]byte) ([]byte, error))` - process each line as `[]byte`, and you can return error, `io.EOF` or custom
-  * `MapString(filterFn func(string) string)` - process each line as `string`
-  * `MapStringErr(filterFn func(string) (string, error))` - process each line as `string`, and you can return error
-  * `Grep(filterFn func([]byte) bool)` - grep lines by function
-  * `GrepString(filterFn func(string) bool)` - grep lines as `string` by function
-  * `GrepByRegexp(re *regexp.Regexp)` - grep lines by regexp
-  * `AWKMode(filterFn func(line string, fields []string, vars AWKVars) (string, error))` - process each line in AWK mode.
+  * `Map(filterFn func([]byte) []byte)` - processing of each line as `[]byte`
+  * `MapErr(filterFn func([]byte) ([]byte, error))` - processing of each line as `[]byte`, and you can return error, `io.EOF` or custom error
+  * `MapString(filterFn func(string) string)` - processing of each line as `string`
+  * `MapStringErr(filterFn func(string) (string, error))` - processing of each line as `string`, and you can return error
+  * `Grep(filterFn func([]byte) bool)` - filtering lines by function
+  * `GrepString(filterFn func(string) bool)` - filtering lines as `string` by function
+  * `GrepByRegexp(re *regexp.Regexp)` - filtering lines by regexp
+  * `AWKMode(filterFn func(line string, fields []string, vars AWKVars) (string, error))` - processing of each line in AWK mode.
     In addition to current line, `filterFn` gets slice with fields splitted by separator (default is `/\s+/`) and vars releated to awk (`NR`, `NF`, `RS`, `FS`)
 
-`Map*Err`, `AWKMode` methods can return `byline.ErrOmitLine` error for discard curent processing line.
+`Map*Err`, `AWKMode` methods can return `byline.ErrOmitLine` - error for discard curent processing line.
 
 ## Helper methods
 
@@ -50,7 +50,7 @@ result, err := byline.NewReader(reader).MapString(func(line string) string {retu
 
 ## Examples
 
-Add line number to each line and add suffix at the end:
+Add line number to each line and add suffix at the end of line:
 
 ```Go
 	reader := strings.NewReader("111\n222\n333")
