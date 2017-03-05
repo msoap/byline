@@ -36,17 +36,17 @@ result, err := byline.NewReader(reader).MapString(func(line string) string {retu
   * `AWKMode(filterFn func(line string, fields []string, vars AWKVars) (string, error))` - processing of each line in AWK mode.
     In addition to current line, `filterFn` gets slice with fields splitted by separator (default is `/\s+/`) and vars releated to awk (`NR`, `NF`, `RS`, `FS`)
 
-`Map*Err`, `AWKMode` methods can return `byline.ErrOmitLine` - error for discard curent processing line.
+`Map*Err`, `AWKMode` methods can return `byline.ErrOmitLine` - error for discard current processing line.
 
 ## Helper methods
 
   * `SetRS(rs byte)` - set line (record) separator, default is newline - `\n`
   * `SetFS(fs *regexp.Regexp)` - set field separator for AWK mode, default is `\s+`
-  * `Discard()` - read all content from Reader for side effect from filter functions
-  * `ReadAll() ([]byte, error)` - read all content to slice of bytes
-  * `ReadAllSlice() ([][]byte, error)` - read all content by lines to `[][]byte`
-  * `ReadAllString() (string, error)` - read all content to string
-  * `ReadAllSliceString() ([]string, error)` - read all content by lines to slice of string
+  * `Discard()` - discard all content from Reader only for side effect of filter functions
+  * `ReadAll() ([]byte, error)` - return all content as slice of bytes
+  * `ReadAllSlice() ([][]byte, error)` - return all content by lines as `[][]byte`
+  * `ReadAllString() (string, error)` - return all content as string
+  * `ReadAllSliceString() ([]string, error)` - return all content by lines as slice of strings
 
 ## Examples
 
