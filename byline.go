@@ -54,8 +54,8 @@ func (lr *Reader) Read(p []byte) (n int, err error) {
 	lineBytes, bufErr := lr.bufReader.ReadBytes(lr.awkVars.RS)
 	lr.awkVars.NR++
 
-	var filterErr error
 	for _, filterFunc := range lr.filterFuncs {
+		var filterErr error
 		lineBytes, filterErr = filterFunc(lineBytes)
 		if filterErr != nil {
 			switch {
