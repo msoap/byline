@@ -119,3 +119,21 @@ func ExampleReader_Grep() {
 	// 	FS *regexp.Regexp
 	// }
 }
+
+func ExampleReader_GrepByRegexp() {
+	reader := strings.NewReader(`ID,NAME,PRICE
+A001,name one,12.3
+A002,second row;7.1
+A003,three row;15.51
+Total: ....
+Some text
+`)
+
+	result, err := byline.NewReader(reader).GrepByRegexp(regexp.MustCompile(`^A\d+,`)).ReadAllString()
+	fmt.Print("\n"+result, err)
+	// Output:
+	// A001,name one,12.3
+	// A002,second row;7.1
+	// A003,three row;15.51
+	// <nil>
+}
