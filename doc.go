@@ -1,5 +1,5 @@
 /*
-Package byline implements Reader for process line-by-line another Reader.
+Package byline implements Reader interface for processing io.Reader line-by-line.
 You can add UNIX text processing principles to its Reader (like with awk, grep, sed ...).
 
 Install
