@@ -1,6 +1,3 @@
-/*
-Package byline implements Reader for process line-by-line another Reader
-*/
 package byline
 
 import (
