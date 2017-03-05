@@ -36,7 +36,7 @@ result, err := byline.NewReader(reader).MapString(func(line string) string {retu
   * `AWKMode(filterFn func(line string, fields []string, vars AWKVars) (string, error))` - processing of each line in AWK mode.
     In addition to current line, `filterFn` gets slice with fields splitted by separator (default is `/\s+/`) and vars releated to awk (`NR`, `NF`, `RS`, `FS`)
 
-`Map*Err`, `AWKMode` methods can return `byline.ErrOmitLine` - error for discard current processing line.
+`Map*Err`, `AWKMode` methods can return `byline.ErrOmitLine` - error for discard processing of current line.
 
 ## Helper methods
 

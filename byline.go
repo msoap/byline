@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	// ErrOmitLine - error for Grep/AWK mode, for omit current line
+	// ErrOmitLine - error for Map*Err/AWKMode, for omitting current line
 	ErrOmitLine = errors.New("ErrOmitLine")
 
 	// default field separator
@@ -164,7 +164,7 @@ func (lr *Reader) Discard() error {
 	return err
 }
 
-// ReadAllSlice - read all content from Reader to []byte slice by lines
+// ReadAllSlice - read all content from Reader by lines to slice of []byte
 func (lr *Reader) ReadAllSlice() ([][]byte, error) {
 	result := [][]byte{}
 	err := lr.Map(func(line []byte) []byte {
