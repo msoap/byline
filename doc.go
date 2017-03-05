@@ -1,6 +1,6 @@
 /*
 Package byline implements Reader for process line-by-line another Reader.
-You can to add UNIX text processing principles to its Reader (awk, grep, sed ...).
+You can to add UNIX text processing principles to its Reader (like with awk, grep, sed ...).
 
 Install
 
