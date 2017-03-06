@@ -199,7 +199,7 @@ func TestReadAll(t *testing.T) {
 			MapString(func(line string) string { return "<" + line }).
 			ReadAllSlice()
 		require.NoError(t, err)
-		require.EqualValues(t, [][]byte{[]byte("<1 name_one 12.3#"), []byte("<2 error_row#"), []byte("<")}, result)
+		require.EqualValues(t, [][]byte{[]byte("<1 name_one 12.3#"), []byte("<2 error_row#")}, result)
 	})
 
 	t.Run("ReadAllSliceString", func(t *testing.T) {
@@ -212,13 +212,23 @@ func TestReadAll(t *testing.T) {
 		require.EqualValues(t, []string{"<1 name_one 12.3#", "<2 error_row"}, result)
 	})
 
-	t.Run("ReadAllSliceStringWithLastEmptyLine", func(t *testing.T) {
+	t.Run("ReadAllSliceStringWithLastNL", func(t *testing.T) {
 		reader := strings.NewReader(`1 name_one 12.3#2 error_row#`)
 		result, err := byline.NewReader(reader).
 			SetRS('#').
 			MapString(func(line string) string { return "<" + line }).
 			ReadAllSliceString()
 		require.NoError(t, err)
-		require.EqualValues(t, []string{"<1 name_one 12.3#", "<2 error_row#", "<"}, result)
+		require.EqualValues(t, []string{"<1 name_one 12.3#", "<2 error_row#"}, result)
+	})
+
+	t.Run("ReadAllSliceStringWithLastEmptyLine", func(t *testing.T) {
+		reader := strings.NewReader(`1 name_one 12.3#2 error_row##`)
+		result, err := byline.NewReader(reader).
+			SetRS('#').
+			MapString(func(line string) string { return "<" + line }).
+			ReadAllSliceString()
+		require.NoError(t, err)
+		require.EqualValues(t, []string{"<1 name_one 12.3#", "<2 error_row#", "<#"}, result)
 	})
 }

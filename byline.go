@@ -2,6 +2,7 @@ package byline
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -23,7 +24,7 @@ var (
 
 // Reader - line by line Reader
 type Reader struct {
-	bufReader   *bufio.Reader
+	scanner     *bufio.Scanner
 	filterFuncs []func(line []byte) ([]byte, error)
 	awkVars     AWKVars
 }
@@ -38,31 +39,63 @@ type AWKVars struct {
 
 // NewReader - get new line by line Reader
 func NewReader(reader io.Reader) *Reader {
-	return &Reader{
-		bufReader: bufio.NewReader(reader),
+	lr := &Reader{
+		scanner: bufio.NewScanner(reader),
 		awkVars: AWKVars{
 			RS: defaultRS,
 			FS: defaultFS,
 		},
 	}
+
+	lr.scanner.Split(lr.scanLinesWithNL)
+	return lr
+}
+
+func (lr *Reader) scanLinesWithNL(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	if atEOF && len(data) == 0 {
+		return 0, nil, nil
+	}
+	if i := bytes.IndexByte(data, lr.awkVars.RS); i >= 0 {
+		// We have a full newline-terminated line.
+		return i + 1, data[0 : i+1], nil
+	}
+	// If we're at EOF, we have a final, non-terminated line. Return it.
+	if atEOF {
+		return len(data), data, nil
+	}
+
+	// Request more data.
+	return 0, nil, nil
 }
 
 // Read - implement io.Reader interface
 func (lr *Reader) Read(p []byte) (n int, err error) {
-	lineBytes, bufErr := lr.bufReader.ReadBytes(lr.awkVars.RS)
-	lr.awkVars.NR++
+	var (
+		bufErr    error
+		lineBytes []byte
+	)
+	if lr.scanner.Scan() {
+		lineBytes = lr.scanner.Bytes()
+		lr.awkVars.NR++
 
-	for _, filterFunc := range lr.filterFuncs {
-		var filterErr error
-		lineBytes, filterErr = filterFunc(lineBytes)
-		if filterErr != nil {
-			switch {
-			case filterErr == ErrOmitLine:
-				lineBytes = nullBytes
-			case filterErr != nil:
-				bufErr = filterErr
+		for _, filterFunc := range lr.filterFuncs {
+			var filterErr error
+			lineBytes, filterErr = filterFunc(lineBytes)
+			if filterErr != nil {
+				switch {
+				case filterErr == ErrOmitLine:
+					lineBytes = nullBytes
+				case filterErr != nil:
+					bufErr = filterErr
+				}
+				break
 			}
-			break
+		}
+	} else {
+		bufErr = lr.scanner.Err()
+		lineBytes = nullBytes
+		if bufErr == nil {
+			bufErr = io.EOF
 		}
 	}
 

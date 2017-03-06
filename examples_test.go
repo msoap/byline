@@ -161,7 +161,7 @@ func ExampleReader_Grep() {
 	fmt.Print("\n" + result)
 	// Output:
 	// type Reader struct {
-	// 	bufReader   *bufio.Reader
+	// 	scanner     *bufio.Scanner
 	// 	filterFuncs []func(line []byte) ([]byte, error)
 	// 	awkVars     AWKVars
 	// }
