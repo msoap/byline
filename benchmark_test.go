@@ -52,9 +52,8 @@ func Benchmark_MapBytes(b *testing.B) {
 			NR++
 			if NR%2 == 0 {
 				return nil, byline.ErrOmitLine
-			} else {
-				return line, nil
 			}
+			return line, nil
 		}).ReadAll()
 		require.NoError(b, err)
 		require.True(b, len(res) > len(bytesSlice)/2-1)
@@ -69,9 +68,24 @@ func Benchmark_MapString(b *testing.B) {
 			NR++
 			if NR%2 == 0 {
 				return "", byline.ErrOmitLine
-			} else {
-				return line, nil
 			}
+			return line, nil
+		}).ReadAll()
+		require.NoError(b, err)
+		require.True(b, len(res) > len(bytesSlice)/2-1)
+	}
+}
+
+func Benchmark_Grep(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		NR := 0
+		reader := bytes.NewReader(bytesSlice)
+		res, err := byline.NewReader(reader).Grep(func([]byte) bool {
+			NR++
+			if NR%2 == 0 {
+				return false
+			}
+			return true
 		}).ReadAll()
 		require.NoError(b, err)
 		require.True(b, len(res) > len(bytesSlice)/2-1)
@@ -84,9 +98,8 @@ func Benchmark_AWKMode(b *testing.B) {
 		res, err := byline.NewReader(reader).AWKMode(func(line string, fields []string, vars byline.AWKVars) (string, error) {
 			if vars.NR%2 == 0 {
 				return "", byline.ErrOmitLine
-			} else {
-				return line, nil
 			}
+			return line, nil
 		}).ReadAll()
 		require.NoError(b, err)
 		require.True(b, len(res) > len(bytesSlice)/2-1)
