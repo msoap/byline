@@ -82,10 +82,7 @@ func Benchmark_Grep(b *testing.B) {
 		reader := bytes.NewReader(bytesSlice)
 		res, err := byline.NewReader(reader).Grep(func([]byte) bool {
 			NR++
-			if NR%2 == 0 {
-				return false
-			}
-			return true
+			return NR%2 != 0
 		}).ReadAll()
 		require.NoError(b, err)
 		require.True(b, len(res) > len(bytesSlice)/2-1)
@@ -98,10 +95,7 @@ func Benchmark_GrepString(b *testing.B) {
 		reader := bytes.NewReader(bytesSlice)
 		res, err := byline.NewReader(reader).GrepString(func(string) bool {
 			NR++
-			if NR%2 == 0 {
-				return false
-			}
-			return true
+			return NR%2 != 0
 		}).ReadAll()
 		require.NoError(b, err)
 		require.True(b, len(res) > len(bytesSlice)/2-1)
