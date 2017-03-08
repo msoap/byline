@@ -52,18 +52,18 @@ func NewReader(reader io.Reader) *Reader {
 		},
 	}
 
-	lr.scanner.Split(lr.scanLinesWithNL)
+	lr.scanner.Split(lr.scanLinesBySep)
 	lr.buffer.Grow(bufferSizeLimit)
 
 	return lr
 }
 
-func (lr *Reader) scanLinesWithNL(data []byte, atEOF bool) (advance int, token []byte, err error) {
+func (lr *Reader) scanLinesBySep(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
 	}
 	if i := bytes.IndexByte(data, lr.awkVars.RS); i >= 0 {
-		// We have a full newline-terminated line.
+		// We have a full RS-terminated line.
 		return i + 1, data[0 : i+1], nil
 	}
 	// If we're at EOF, we have a final, non-terminated line. Return it.
