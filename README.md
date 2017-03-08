@@ -172,10 +172,10 @@ Price sum: 27.81 nil
 
     ❯ make benchmark
     go test -benchtime 5s -benchmem -bench .
-    Benchmark_NativeScannerBytes-4   	   20000	    353897 ns/op	  403496 B/op	      25 allocs/op
-    Benchmark_MapBytes-4             	   10000	    900780 ns/op	  427936 B/op	    5019 allocs/op
-    Benchmark_MapString-4            	    5000	   1752243 ns/op	  747952 B/op	   20020 allocs/op
-    Benchmark_AWKMode-4              	     500	  17746927 ns/op	 4607891 B/op	   80019 allocs/op
+    Benchmark_NativeScannerBytes-4   	   20000	    340716 ns/op	  403488 B/op	      24 allocs/op
+    Benchmark_MapBytes-4             	   10000	    584415 ns/op	  267936 B/op	      19 allocs/op
+    Benchmark_MapString-4            	    5000	   1419735 ns/op	  507953 B/op	   15020 allocs/op
+    Benchmark_AWKMode-4              	     500	  17270349 ns/op	 4287971 B/op	   75019 allocs/op
     PASS
 
 See `benchmark_test.go` for benchmark code

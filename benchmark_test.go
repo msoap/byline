@@ -13,8 +13,7 @@ import (
 const linesCount = 10000
 
 var (
-	bytesSlice  = getBytes()
-	prefixBytes = []byte("pre:")
+	bytesSlice = getBytes()
 )
 
 func getBytes() []byte {
@@ -36,7 +35,6 @@ func Benchmark_NativeScannerBytes(b *testing.B) {
 		for scanner.Scan() {
 			NR++
 			if NR%2 != 0 {
-				res = append(res, prefixBytes...)
 				res = append(res, scanner.Bytes()...)
 			}
 		}
@@ -55,7 +53,6 @@ func Benchmark_MapBytes(b *testing.B) {
 			if NR%2 == 0 {
 				return nil, byline.ErrOmitLine
 			} else {
-				line = append(prefixBytes, line...)
 				return line, nil
 			}
 		}).ReadAll()
@@ -73,7 +70,7 @@ func Benchmark_MapString(b *testing.B) {
 			if NR%2 == 0 {
 				return "", byline.ErrOmitLine
 			} else {
-				return "pre:" + line, nil
+				return line, nil
 			}
 		}).ReadAll()
 		require.NoError(b, err)
@@ -88,7 +85,7 @@ func Benchmark_AWKMode(b *testing.B) {
 			if vars.NR%2 == 0 {
 				return "", byline.ErrOmitLine
 			} else {
-				return "pre:" + line, nil
+				return line, nil
 			}
 		}).ReadAll()
 		require.NoError(b, err)
