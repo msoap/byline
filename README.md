@@ -170,6 +170,8 @@ Price sum: 27.81 nil
 
 ## Overheads
 
+An example in which we get odd lines (for `io.Reader` with 10000 lines):
+
     ❯ make benchmark
     go test -benchtime 5s -benchmem -bench .
     Benchmark_NativeScannerBytes-4   	   20000	    307008 ns/op	  215080 B/op	      24 allocs/op
