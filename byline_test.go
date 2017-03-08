@@ -48,18 +48,18 @@ func TestMapErr(t *testing.T) {
 
 // truncate stream
 func TestMapErrWithError(t *testing.T) {
-	reader := strings.NewReader("111\n222\n333")
+	reader := strings.NewReader("111\n222\n333\n444\n555")
 
 	lr := byline.NewReader(reader).MapErr(func(line []byte) ([]byte, error) {
-		if bytes.HasPrefix(line, []byte("222")) {
+		if bytes.HasPrefix(line, []byte("333")) {
 			return line, io.EOF
 		}
 		return line, nil
 	})
 
-	result, err := ioutil.ReadAll(lr)
+	result, err := lr.ReadAll()
 	require.NoError(t, err)
-	require.Equal(t, "111\n222\n", string(result))
+	require.Equal(t, "111\n222\n333\n", string(result))
 }
 
 func TestMapString(t *testing.T) {
@@ -71,7 +71,7 @@ func TestMapString(t *testing.T) {
 		return fmt.Sprintf("%d. %s", i, line)
 	})
 
-	result, err := ioutil.ReadAll(lr)
+	result, err := lr.ReadAll()
 	require.NoError(t, err)
 	require.Equal(t, "1. 111\n2. 222\n3. 333", string(result))
 }

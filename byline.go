@@ -20,11 +20,15 @@ var (
 	defaultRS byte = '\n'
 	// for Grep* methods
 	nullBytes = []byte{}
+	// bytes.Buffer growth to this limit
+	bufferSizeLimit = 1024
 )
 
 // Reader - line by line Reader
 type Reader struct {
 	scanner     *bufio.Scanner
+	buffer      *bytes.Buffer
+	existsData  bool
 	filterFuncs []func(line []byte) ([]byte, error)
 	awkVars     AWKVars
 }
@@ -40,7 +44,9 @@ type AWKVars struct {
 // NewReader - get new line by line Reader
 func NewReader(reader io.Reader) *Reader {
 	lr := &Reader{
-		scanner: bufio.NewScanner(reader),
+		scanner:    bufio.NewScanner(reader),
+		buffer:     bytes.NewBuffer([]byte{}),
+		existsData: true,
 		awkVars: AWKVars{
 			RS: defaultRS,
 			FS: defaultFS,
@@ -48,6 +54,8 @@ func NewReader(reader io.Reader) *Reader {
 	}
 
 	lr.scanner.Split(lr.scanLinesWithNL)
+	lr.buffer.Grow(bufferSizeLimit)
+
 	return lr
 }
 
@@ -71,36 +79,44 @@ func (lr *Reader) scanLinesWithNL(data []byte, atEOF bool) (advance int, token [
 // Read - implement io.Reader interface
 func (lr *Reader) Read(p []byte) (n int, err error) {
 	var (
-		bufErr    error
-		lineBytes []byte
+		bufErr, filterErr error
+		lineBytes         []byte
 	)
-	if lr.scanner.Scan() {
+
+	for lr.existsData && bufErr == nil && lr.buffer.Len() < bufferSizeLimit {
+		if lr.existsData = lr.scanner.Scan(); !lr.existsData {
+			break
+		}
+
 		lineBytes = lr.scanner.Bytes()
 		lr.awkVars.NR++
 
 		for _, filterFunc := range lr.filterFuncs {
-			var filterErr error
 			lineBytes, filterErr = filterFunc(lineBytes)
 			if filterErr != nil {
-				switch {
-				case filterErr == ErrOmitLine:
+				switch filterErr {
+				case ErrOmitLine:
 					lineBytes = nullBytes
-				case filterErr != nil:
+				default:
 					bufErr = filterErr
 				}
 				break
 			}
 		}
-	} else {
-		bufErr = lr.scanner.Err()
-		lineBytes = nullBytes
-		if bufErr == nil {
-			bufErr = io.EOF
-		}
+
+		_, _ = lr.buffer.Write(lineBytes) // #nosec - err always is nil
 	}
 
-	copy(p, lineBytes)
-	return len(lineBytes), bufErr
+	if !lr.existsData && bufErr == nil {
+		bufErr = lr.scanner.Err()
+	}
+
+	n, err = lr.buffer.Read(p)
+	if err != nil && bufErr == nil {
+		bufErr = err
+	}
+
+	return n, bufErr
 }
 
 // Map - set filter function for process each line
