@@ -92,6 +92,22 @@ func Benchmark_Grep(b *testing.B) {
 	}
 }
 
+func Benchmark_GrepString(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		NR := 0
+		reader := bytes.NewReader(bytesSlice)
+		res, err := byline.NewReader(reader).GrepString(func(string) bool {
+			NR++
+			if NR%2 == 0 {
+				return false
+			}
+			return true
+		}).ReadAll()
+		require.NoError(b, err)
+		require.True(b, len(res) > len(bytesSlice)/2-1)
+	}
+}
+
 func Benchmark_AWKMode(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		reader := bytes.NewReader(bytesSlice)

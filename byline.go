@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/ioutil"
 	"regexp"
-	"strings"
 )
 
 var (
@@ -186,24 +185,27 @@ func (lr *Reader) SetFS(fs *regexp.Regexp) *Reader {
 
 // AWKMode - process lines with AWK like mode
 func (lr *Reader) AWKMode(filterFn func(line string, fields []string, vars AWKVars) (string, error)) *Reader {
-	return lr.MapStringErr(func(line string) (string, error) {
+	return lr.MapErr(func(line []byte) ([]byte, error) {
 		addRS := false
-		if strings.HasSuffix(line, string(lr.awkVars.RS)) {
+		RS := []byte{lr.awkVars.RS}
+		if bytes.HasSuffix(line, RS) {
 			addRS = true
-			line = strings.TrimSuffix(line, string(lr.awkVars.RS))
+			line = bytes.TrimSuffix(line, RS)
 		}
 
-		fields := lr.awkVars.FS.Split(line, -1)
+		lineStr := string(line)
+		fields := lr.awkVars.FS.Split(lineStr, -1)
 		lr.awkVars.NF = len(fields)
-		result, err := filterFn(line, fields, lr.awkVars)
+		result, err := filterFn(lineStr, fields, lr.awkVars)
 		if err != nil {
-			return "", err
+			return nullBytes, err
 		}
 
-		if !strings.HasSuffix(result, string(lr.awkVars.RS)) && addRS {
-			result += string(lr.awkVars.RS)
+		resultBytes := []byte(result)
+		if !bytes.HasSuffix(resultBytes, RS) && addRS {
+			resultBytes = append(resultBytes, lr.awkVars.RS)
 		}
-		return result, nil
+		return resultBytes, nil
 	})
 }
 
