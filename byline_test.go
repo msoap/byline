@@ -232,3 +232,18 @@ func TestReadAll(t *testing.T) {
 		require.EqualValues(t, []string{"<1 name_one 12.3#", "<2 error_row#", "<#"}, result)
 	})
 }
+
+func TestLongLines(t *testing.T) {
+	reader := strings.NewReader("01234567890123456789012345678901234567890123456789\n01234567890123456789012345678901234567890123456789")
+	lr := byline.NewReader(reader).MapString(func(line string) string { return "<" + line })
+
+	smallBuf := make([]byte, 10)
+	n, err := lr.Read(smallBuf)
+	require.NoError(t, err)
+	require.Equal(t, 10, n)
+	require.EqualValues(t, []byte("<012345678"), smallBuf)
+
+	rest, err := ioutil.ReadAll(lr)
+	require.NoError(t, err)
+	require.EqualValues(t, []byte("90123456789012345678901234567890123456789\n<01234567890123456789012345678901234567890123456789"), rest)
+}
