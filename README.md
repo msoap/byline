@@ -29,14 +29,14 @@ result, err := byline.NewReader(reader).MapString(func(line string) string {retu
 
 ## Filter functions
 
-  * `Map(filterFn func([]byte) []byte)` - processing of each line as `[]byte`.
-  * `MapErr(filterFn func([]byte) ([]byte, error))` - processing of each line as `[]byte`, and you can return error, `io.EOF` or custom error.
-  * `MapString(filterFn func(string) string)` - processing of each line as `string`.
-  * `MapStringErr(filterFn func(string) (string, error))` - processing of each line as `string`, and you can return error.
-  * `Grep(filterFn func([]byte) bool)` - filtering lines by function.
-  * `GrepString(filterFn func(string) bool)` - filtering lines as `string` by function.
+  * `Map(func([]byte) []byte)` - processing of each line as `[]byte`.
+  * `MapErr(func([]byte) ([]byte, error))` - processing of each line as `[]byte`, and you can return error, `io.EOF` or custom error.
+  * `MapString(func(string) string)` - processing of each line as `string`.
+  * `MapStringErr(func(string) (string, error))` - processing of each line as `string`, and you can return error.
+  * `Grep(func([]byte) bool)` - filtering lines by function.
+  * `GrepString(func(string) bool)` - filtering lines as `string` by function.
   * `GrepByRegexp(re *regexp.Regexp)` - filtering lines by regexp.
-  * `AWKMode(filterFn func(line string, fields []string, vars AWKVars) (string, error))` - processing of each line in AWK mode.
+  * `AWKMode(func(line string, fields []string, vars AWKVars) (string, error))` - processing of each line in AWK mode.
     In addition to current line, `filterFn` gets slice with fields splitted by separator (default is `/\s+/`) and vars releated to awk (`NR`, `NF`, `RS`, `FS`).
     Attention! Use `AWKMode()` with caution on large data sets, see [Overheads](#overheads) below.
 
