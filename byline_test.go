@@ -38,28 +38,89 @@ func TestMapErr(t *testing.T) {
 		i++
 		return []byte(newLine), nil
 	}).MapErr(func(line []byte) ([]byte, error) {
-		return regexp.MustCompile(`\n?$`).ReplaceAll(line, []byte(" suf\n")), nil
+		return regexp.MustCompile(`(\n?)$`).ReplaceAll(line, []byte(" suf$1")), nil
 	})
 
 	result, err := ioutil.ReadAll(lr)
 	require.NoError(t, err)
-	require.Equal(t, "(1) 111 suf\n(2) 222 suf\n(3) 333 suf\n", string(result))
+	require.Equal(t, "(1) 111 suf\n(2) 222 suf\n(3) 333 suf", string(result))
 }
 
 // truncate stream
 func TestMapErrWithError(t *testing.T) {
-	reader := strings.NewReader("111\n222\n333\n444\n555")
+	cases := []struct {
+		in, out string
+	}{
+		{
+			in:  "111\n222\n333\n444\n555",
+			out: "111\n222\n333\n",
+		},
+		{
+			in:  "111\n222\n333\n444\n",
+			out: "111\n222\n333\n",
+		},
+		{
+			in:  "111\n222\n333\n444",
+			out: "111\n222\n333\n",
+		},
+		{
+			in:  "111\n222\n333\n",
+			out: "111\n222\n333\n",
+		},
+		{
+			in:  "111\n222\n333",
+			out: "111\n222\n333",
+		},
+		{
+			in:  "111\n222\n",
+			out: "111\n222\n",
+		},
+		{
+			in:  "111\n222",
+			out: "111\n222",
+		},
+		{
+			in:  "111\n",
+			out: "111\n",
+		},
+		{
+			in:  "111",
+			out: "111",
+		},
+		{
+			in:  "\n",
+			out: "\n",
+		},
+		{
+			in:  "",
+			out: "",
+		},
+		{
+			in:  "1\n3333333333333333333333333333333333333333333333333333333333333333",
+			out: "1\n3333333333333333333333333333333333333333333333333333333333333333",
+		},
+		{
+			in:  "3333333333333333333333333333333333333333333333333333333333333333",
+			out: "3333333333333333333333333333333333333333333333333333333333333333",
+		},
+	}
 
-	lr := byline.NewReader(reader).MapErr(func(line []byte) ([]byte, error) {
-		if bytes.HasPrefix(line, []byte("333")) {
-			return line, io.EOF
-		}
-		return line, nil
-	})
+	for i, row := range cases {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			reader := strings.NewReader(row.in)
 
-	result, err := lr.ReadAll()
-	require.NoError(t, err)
-	require.Equal(t, "111\n222\n333\n", string(result))
+			lr := byline.NewReader(reader).MapErr(func(line []byte) ([]byte, error) {
+				if bytes.HasPrefix(line, []byte("333")) {
+					return line, io.EOF
+				}
+				return line, nil
+			})
+
+			result, err := lr.ReadAll()
+			require.NoError(t, err)
+			require.Equal(t, row.out, string(result))
+		})
+	}
 }
 
 func TestMapString(t *testing.T) {
@@ -77,47 +138,126 @@ func TestMapString(t *testing.T) {
 }
 
 func TestMapStringErr(t *testing.T) {
-	reader := strings.NewReader("111\n222\n333")
+	cases := []struct {
+		in, out string
+	}{
+		{
+			in:  "111\n222\n333\n",
+			out: "1. 111\n2. 222\n",
+		},
+		{
+			in:  "111\n222\n333",
+			out: "1. 111\n2. 222\n",
+		},
+		{
+			in:  "111\n222\n",
+			out: "1. 111\n2. 222\n",
+		},
+		{
+			in:  "111\n222",
+			out: "1. 111\n2. 222",
+		},
+		{
+			in:  "111\n",
+			out: "1. 111\n",
+		},
+		{
+			in:  "111",
+			out: "1. 111",
+		},
+		{
+			in:  "\n",
+			out: "1. \n",
+		},
+		{
+			in:  "",
+			out: "",
+		},
+	}
 
-	i := 0
-	lr := byline.NewReader(reader).MapStringErr(func(line string) (string, error) {
-		i++
-		if i == 2 {
-			return fmt.Sprintf("%d. %s", i, line), io.EOF
-		}
+	for i, row := range cases {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			reader := strings.NewReader(row.in)
 
-		return fmt.Sprintf("%d. %s", i, line), nil
-	})
+			i := 0
+			lr := byline.NewReader(reader).MapStringErr(func(line string) (string, error) {
+				i++
+				if i == 2 {
+					return fmt.Sprintf("%d. %s", i, line), io.EOF
+				}
 
-	result, err := ioutil.ReadAll(lr)
-	require.NoError(t, err)
-	require.Equal(t, "1. 111\n2. 222\n", string(result))
+				return fmt.Sprintf("%d. %s", i, line), nil
+			})
+
+			result, err := ioutil.ReadAll(lr)
+			require.NoError(t, err)
+			require.Equal(t, row.out, string(result))
+		})
+	}
 }
 
 func TestGrep(t *testing.T) {
-	reader := strings.NewReader("111\n222\n333")
+	cases := []struct {
+		in, out string
+	}{
+		{
+			in:  "111\n222\n333",
+			out: "111\n333",
+		},
+		{
+			in:  "111\n222\n333\n",
+			out: "111\n333\n",
+		},
+		{
+			in:  "111\n222\n",
+			out: "111\n",
+		},
+		{
+			in:  "111\n",
+			out: "111\n",
+		},
+		{
+			in:  "111",
+			out: "111",
+		},
+		{
+			in:  "\n",
+			out: "\n",
+		},
+		{
+			in:  "",
+			out: "",
+		},
+	}
 
-	i := 0
-	lr := byline.NewReader(reader).Grep(func(line []byte) bool {
-		i++
-		return !(i == 2)
-	})
+	for i, row := range cases {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			reader := strings.NewReader(row.in)
 
-	result, err := ioutil.ReadAll(lr)
-	require.NoError(t, err)
-	require.Equal(t, "111\n333", string(result))
+			i := 0
+			lr := byline.NewReader(reader).Grep(func(line []byte) bool {
+				i++
+				return !(i == 2)
+			})
+
+			result, err := ioutil.ReadAll(lr)
+			require.NoError(t, err)
+			require.Equal(t, row.out, string(result))
+
+		})
+	}
 }
 
 func TestGrepString(t *testing.T) {
-	reader := strings.NewReader("111\n222\n333")
+	reader := strings.NewReader("111\n222\n333\n")
 
 	lr := byline.NewReader(reader).GrepString(func(line string) bool {
-		return !strings.HasPrefix(line, "222\n")
+		return !strings.HasPrefix(line, "222")
 	})
 
 	result, err := ioutil.ReadAll(lr)
 	require.NoError(t, err)
-	require.Equal(t, "111\n333", string(result))
+	require.Equal(t, "111\n333\n", string(result))
 }
 
 func TestGrepByRegexp(t *testing.T) {
