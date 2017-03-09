@@ -19,6 +19,9 @@ Usage
  // Read all content
  result, err := lr.ReadAll()
 
+ // Use everywhere instead of io.Reader
+ _, err := io.Copy(os.Stdout, lr)
+
  // Or in one place
  result, err := byline.NewReader(reader).MapString(func(line string) string {return "prefix_" + line}).ReadAll()
 

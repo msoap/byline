@@ -1,6 +1,6 @@
 # byline Reader [![GoDoc](https://godoc.org/github.com/msoap/byline?status.svg)](https://godoc.org/github.com/msoap/byline) [![Build Status](https://travis-ci.org/msoap/byline.svg?branch=master)](https://travis-ci.org/msoap/byline) [![Coverage Status](https://coveralls.io/repos/github/msoap/byline/badge.svg?branch=master)](https://coveralls.io/github/msoap/byline?branch=master) [![Sourcegraph](https://sourcegraph.com/github.com/msoap/byline/-/badge.svg)](https://sourcegraph.com/github.com/msoap/byline?badge) [![Report Card](https://goreportcard.com/badge/github.com/msoap/byline)](https://goreportcard.com/report/github.com/msoap/byline)
 
-Go library for convert io.Reader to line-by-line Reader. Now you can add UNIX text processing principles to its Reader (like with awk, grep, sed ...).
+Go-library for reading and processing data from a `io.Reader` line by line. Now you can add UNIX text processing principles to its Reader (like with awk, grep, sed ...).
 
 ## Install
 
@@ -20,33 +20,37 @@ lr.MapString(func(line string) string {return "prefix_" + line}).GrepByRegexp(re
 // Read all content
 result, err := lr.ReadAll()
 
+// Use everywhere instead of io.Reader
+_, err := io.Copy(os.Stdout, lr)
+
 // Or in one place
 result, err := byline.NewReader(reader).MapString(func(line string) string {return "prefix_" + line}).ReadAll()
 ```
 
 ## Filter functions
 
-  * `Map(filterFn func([]byte) []byte)` - processing of each line as `[]byte`
-  * `MapErr(filterFn func([]byte) ([]byte, error))` - processing of each line as `[]byte`, and you can return error, `io.EOF` or custom error
-  * `MapString(filterFn func(string) string)` - processing of each line as `string`
-  * `MapStringErr(filterFn func(string) (string, error))` - processing of each line as `string`, and you can return error
-  * `Grep(filterFn func([]byte) bool)` - filtering lines by function
-  * `GrepString(filterFn func(string) bool)` - filtering lines as `string` by function
-  * `GrepByRegexp(re *regexp.Regexp)` - filtering lines by regexp
+  * `Map(filterFn func([]byte) []byte)` - processing of each line as `[]byte`.
+  * `MapErr(filterFn func([]byte) ([]byte, error))` - processing of each line as `[]byte`, and you can return error, `io.EOF` or custom error.
+  * `MapString(filterFn func(string) string)` - processing of each line as `string`.
+  * `MapStringErr(filterFn func(string) (string, error))` - processing of each line as `string`, and you can return error.
+  * `Grep(filterFn func([]byte) bool)` - filtering lines by function.
+  * `GrepString(filterFn func(string) bool)` - filtering lines as `string` by function.
+  * `GrepByRegexp(re *regexp.Regexp)` - filtering lines by regexp.
   * `AWKMode(filterFn func(line string, fields []string, vars AWKVars) (string, error))` - processing of each line in AWK mode.
-    In addition to current line, `filterFn` gets slice with fields splitted by separator (default is `/\s+/`) and vars releated to awk (`NR`, `NF`, `RS`, `FS`)
+    In addition to current line, `filterFn` gets slice with fields splitted by separator (default is `/\s+/`) and vars releated to awk (`NR`, `NF`, `RS`, `FS`).
+    Attention! Use `AWKMode()` with caution on large data sets, see [Overheads](#overheads) below.
 
 `Map*Err`, `AWKMode` methods can return `byline.ErrOmitLine` - error for discard processing of current line.
 
 ## Helper methods
 
-  * `SetRS(rs byte)` - set line (record) separator, default is newline - `\n`
-  * `SetFS(fs *regexp.Regexp)` - set field separator for AWK mode, default is `\s+`
-  * `Discard()` - discard all content from Reader only for side effect of filter functions
-  * `ReadAll() ([]byte, error)` - return all content as slice of bytes
-  * `ReadAllSlice() ([][]byte, error)` - return all content by lines as `[][]byte`
-  * `ReadAllString() (string, error)` - return all content as string
-  * `ReadAllSliceString() ([]string, error)` - return all content by lines as slice of strings
+  * `SetRS(rs byte)` - set line (record) separator, default is newline - `\n`.
+  * `SetFS(fs *regexp.Regexp)` - set field separator for AWK mode, default is `\s+`.
+  * `Discard()` - discard all content from Reader only for side effect of filter functions.
+  * `ReadAll() ([]byte, error)` - return all content as slice of bytes.
+  * `ReadAllSlice() ([][]byte, error)` - return all content by lines as `[][]byte`.
+  * `ReadAllString() (string, error)` - return all content as string.
+  * `ReadAllSliceString() ([]string, error)` - return all content by lines as slice of strings.
 
 ## Examples
 
