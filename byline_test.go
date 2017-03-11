@@ -196,6 +196,79 @@ func TestMapStringErr(t *testing.T) {
 	}
 }
 
+func TestEach(t *testing.T) {
+	cases := []struct {
+		in  string
+		out []string
+	}{
+		{
+			in:  "111\n222\n333\n",
+			out: []string{"111\n", "222\n", "333\n"},
+		},
+		{
+			in:  "111\n222\n333",
+			out: []string{"111\n", "222\n", "333"},
+		},
+		{
+			in:  "111\n222\n",
+			out: []string{"111\n", "222\n"},
+		},
+		{
+			in:  "111\n222",
+			out: []string{"111\n", "222"},
+		},
+		{
+			in:  "111\n",
+			out: []string{"111\n"},
+		},
+		{
+			in:  "111",
+			out: []string{"111"},
+		},
+		{
+			in:  "",
+			out: []string{},
+		},
+	}
+
+	for i, row := range cases {
+		t.Run(fmt.Sprintf("%d. on bytes", i), func(t *testing.T) {
+			reader := strings.NewReader(row.in)
+
+			out := []string{}
+			err := byline.NewReader(reader).Each(func(line []byte) {
+				out = append(out, string(line))
+			}).Discard()
+
+			require.NoError(t, err)
+			require.Equal(t, row.out, out)
+		})
+
+		t.Run(fmt.Sprintf("%d. on string", i), func(t *testing.T) {
+			reader := strings.NewReader(row.in)
+
+			out := []string{}
+			err := byline.NewReader(reader).EachString(func(line string) {
+				out = append(out, line)
+			}).Discard()
+
+			require.NoError(t, err)
+			require.Equal(t, row.out, out)
+		})
+	}
+
+	t.Run("Each cant change line inplace", func(t *testing.T) {
+		reader := strings.NewReader("111\n222\n333")
+
+		out, err := byline.NewReader(reader).Each(func(line []byte) {
+			line[0] = 'A'
+		}).ReadAllString()
+
+		require.NoError(t, err)
+		require.Equal(t, "111\n222\n333", out)
+	})
+}
+
 func TestGrep(t *testing.T) {
 	cases := []struct {
 		in, out string

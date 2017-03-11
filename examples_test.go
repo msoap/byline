@@ -222,3 +222,45 @@ Some text
 	// <300000
 	// <nil>
 }
+
+func ExampleReader_Each() {
+	reader := strings.NewReader(`1 1 1
+2 2 2
+3 3 3
+`)
+
+	spacesCount, bytesCount, linesCount := 0, 0, 0
+	err := byline.NewReader(reader).
+		Each(func(line []byte) {
+			linesCount++
+			bytesCount += len(line)
+			for _, b := range line {
+				if b == ' ' {
+					spacesCount++
+				}
+			}
+		}).Discard()
+
+	if err == nil {
+		fmt.Printf("spaces: %d, bytes: %d, lines: %d\n", spacesCount, bytesCount, linesCount)
+	}
+	// Output: spaces: 6, bytes: 18, lines: 3
+}
+
+func ExampleReader_EachString() {
+	reader := strings.NewReader(`111
+222
+333
+`)
+
+	result := []string{}
+	err := byline.NewReader(reader).
+		EachString(func(line string) {
+			result = append(result, line)
+		}).Discard()
+
+	if err == nil {
+		fmt.Printf("%q\n", result)
+	}
+	// Output: ["111\n" "222\n" "333\n"]
+}

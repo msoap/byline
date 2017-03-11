@@ -146,6 +146,24 @@ func (lr *Reader) MapStringErr(filterFn func(string) (string, error)) *Reader {
 	})
 }
 
+// Each - processing each line without changing the line
+func (lr *Reader) Each(filterFn func([]byte)) *Reader {
+	return lr.MapErr(func(line []byte) ([]byte, error) {
+		copyLine := make([]byte, len(line))
+		copy(copyLine, line)
+		filterFn(copyLine)
+		return line, nil
+	})
+}
+
+// EachString - processing each line without changing the line
+func (lr *Reader) EachString(filterFn func(string)) *Reader {
+	return lr.MapErr(func(line []byte) ([]byte, error) {
+		filterFn(string(line))
+		return line, nil
+	})
+}
+
 // Grep - grep lines by func
 func (lr *Reader) Grep(filterFn func([]byte) bool) *Reader {
 	return lr.MapErr(func(line []byte) ([]byte, error) {

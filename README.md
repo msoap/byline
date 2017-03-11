@@ -33,6 +33,8 @@ result, err := byline.NewReader(reader).MapString(func(line string) string {retu
   * `MapErr(func([]byte) ([]byte, error))` - processing of each line as `[]byte`, and you can return error, `io.EOF` or custom error.
   * `MapString(func(string) string)` - processing of each line as `string`.
   * `MapStringErr(func(string) (string, error))` - processing of each line as `string`, and you can return error.
+  * `Each(func([]byte))` - processing each line without changing the line
+  * `EachString(func(string))` - processing each line as string without changing the line
   * `Grep(func([]byte) bool)` - filtering lines by function.
   * `GrepString(func(string) bool)` - filtering lines as `string` by function.
   * `GrepByRegexp(re *regexp.Regexp)` - filtering lines by regexp.
