@@ -167,12 +167,14 @@ type AWKVars struct {
 			}
 		}).Discard()
 
-	fmt.Println("Price sum:", sum, err)
+	if err != nil {
+		fmt.Println("Price sum:", sum)
+	}
 
 ```
 Output:
 ```
-Price sum: 27.81 nil
+Price sum: 27.81
 ```
 </details>
 
