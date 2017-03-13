@@ -196,5 +196,6 @@ See `benchmark_test.go` for benchmark code
 
 ## See also
 
-  * [io](https://golang.org/pkg/io/), [ioutil](https://golang.org/pkg/io/ioutil/), [bufio](https://golang.org/pkg/bufio/) - Go packages for work with Readers
-  * [AWK](https://en.wikipedia.org/wiki/AWK) - programming language and great UNIX tool
+  * [io](https://golang.org/pkg/io/), [ioutil](https://golang.org/pkg/io/ioutil/), [bufio](https://golang.org/pkg/bufio/) - Go packages for work with Readers.
+  * [go-linereader](https://github.com/mitchellh/go-linereader) - package that reads lines from an io.Reader and puts them onto a channel.
+  * [AWK](https://en.wikipedia.org/wiki/AWK) - programming language and great UNIX tool.
