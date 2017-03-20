@@ -59,23 +59,21 @@ result, err := byline.NewReader(reader).MapString(func(line string) string {retu
 Add line number to each line and add suffix at the end of line:
 
 ```Go
+reader := strings.NewReader("111\n222\n333")
+// or read file
+reader, err := os.Open("file.txt")
+// or process response from HTTP client
+reader := httpResponse.Body
 
-	reader := strings.NewReader("111\n222\n333")
-    // or read file
-    reader, err := os.Open("file.txt")
-    // or process response from HTTP client
-    reader := httpResponse.Body
+i := 0
+blr := byline.NewReader(reader).MapString(func(line string) string {
+	i++
+	return fmt.Sprintf("(%d) %s", i, string(line))
+}).Map(func(line []byte) []byte {
+	return regexp.MustCompile(`\n?$`).ReplaceAll(line, []byte(" suf\n"))
+})
 
-	i := 0
-	blr := byline.NewReader(reader).MapString(func(line string) string {
-		i++
-		return fmt.Sprintf("(%d) %s", i, string(line))
-	}).Map(func(line []byte) []byte {
-		return regexp.MustCompile(`\n?$`).ReplaceAll(line, []byte(" suf\n"))
-	})
-
-	result, err := blr.ReadAll()
-
+result, err := blr.ReadAll()
 ```
 
 <details><summary>Select all types from the Go-source:</summary>
@@ -148,31 +146,31 @@ type AWKVars struct {
 <details><summary>Example of AWK mode, sum the third column with the filter (>10.0):</summary>
 
 ```Go
-    // CSV with "#" instead of "\n"
-	reader := strings.NewReader(`1,name one,12.3#2,second row;7.1#3,three row;15.51`)
+// CSV with "#" instead of "\n"
+reader := strings.NewReader(`1,name one,12.3#2,second row;7.1#3,three row;15.51`)
 
-	sum := 0.0
-	err := byline.NewReader(reader).
-		SetRS('#').
-		SetFS(regexp.MustCompile(`,|;`)).
-		AWKMode(func(line string, fields []string, vars byline.AWKVars) (string, error) {
-			if vars.NF < 3 {
-				return "", fmt.Errorf("csv parse failed for %q", line)
-			}
+sum := 0.0
+err := byline.NewReader(reader).
+	SetRS('#').
+	SetFS(regexp.MustCompile(`,|;`)).
+	AWKMode(func(line string, fields []string, vars byline.AWKVars) (string, error) {
+		if vars.NF < 3 {
+			return "", fmt.Errorf("csv parse failed for %q", line)
+		}
 
-			if price, err := strconv.ParseFloat(fields[2], 10); err != nil {
-				return "", err
-			} else if price < 10 {
-				return "", byline.ErrOmitLine
-			} else {
-				sum += price
-				return "", nil
-			}
-		}).Discard()
+		if price, err := strconv.ParseFloat(fields[2], 10); err != nil {
+			return "", err
+		} else if price < 10 {
+			return "", byline.ErrOmitLine
+		} else {
+			sum += price
+			return "", nil
+		}
+	}).Discard()
 
-	if err != nil {
-		fmt.Println("Price sum:", sum)
-	}
+if err != nil {
+	fmt.Println("Price sum:", sum)
+}
 
 ```
 Output:
