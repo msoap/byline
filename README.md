@@ -59,6 +59,7 @@ result, err := byline.NewReader(reader).MapString(func(line string) string {retu
 Add line number to each line and add suffix at the end of line:
 
 ```Go
+
 	reader := strings.NewReader("111\n222\n333")
     // or read file
     reader, err := os.Open("file.txt")
@@ -78,6 +79,7 @@ Add line number to each line and add suffix at the end of line:
 ```
 
 <details><summary>Select all types from the Go-source:</summary>
+
 ```Go
 type StateMachine struct {
 	beginRe *regexp.Regexp
@@ -144,6 +146,7 @@ type AWKVars struct {
 </details>
 
 <details><summary>Example of AWK mode, sum the third column with the filter (>10.0):</summary>
+
 ```Go
     // CSV with "#" instead of "\n"
 	reader := strings.NewReader(`1,name one,12.3#2,second row;7.1#3,three row;15.51`)
