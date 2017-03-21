@@ -129,7 +129,7 @@ Output:
 ```
 type Reader struct {
 	scanner     *bufio.Scanner
-	buffer      *bytes.Buffer
+	buffer      bytes.Buffer
 	existsData  bool
 	filterFuncs []func(line []byte) ([]byte, error)
 	awkVars     AWKVars
@@ -185,12 +185,12 @@ An example in which we get odd lines (for `io.Reader` with 10000 lines):
 
     ❯ make benchmark
     go test -benchtime 5s -benchmem -bench .
-    Benchmark_NativeScannerBytes-4   	   20000	    309615 ns/op	  215080 B/op	      24 allocs/op
-    Benchmark_MapBytes-4             	   10000	    586863 ns/op	  136864 B/op	      18 allocs/op
-    Benchmark_MapString-4            	    5000	   1380738 ns/op	  375680 B/op	   15019 allocs/op
-    Benchmark_Grep-4                 	   10000	    606173 ns/op	  136880 B/op	      19 allocs/op
-    Benchmark_GrepString-4           	   10000	   1088394 ns/op	  296096 B/op	   10020 allocs/op
-    Benchmark_AWKMode-4              	     500	  11748687 ns/op	 3412072 B/op	   55467 allocs/op
+    Benchmark_NativeScannerBytes-4   	   20000	    324770 ns/op	  215080 B/op	      24 allocs/op
+    Benchmark_MapBytes-4             	   10000	    560480 ns/op	  135184 B/op	      17 allocs/op
+    Benchmark_MapString-4            	    5000	   1379645 ns/op	  374001 B/op	   15018 allocs/op
+    Benchmark_Grep-4                 	   10000	    587104 ns/op	  135200 B/op	      18 allocs/op
+    Benchmark_GrepString-4           	    5000	   1117443 ns/op	  294416 B/op	   10019 allocs/op
+    Benchmark_AWKMode-4              	    1000	  11768824 ns/op	 3410392 B/op	   55466 allocs/op
     PASS
 
 See `benchmark_test.go` for benchmark code

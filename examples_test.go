@@ -162,7 +162,7 @@ func ExampleReader_Grep() {
 	// Output:
 	// type Reader struct {
 	// 	scanner     *bufio.Scanner
-	// 	buffer      *bytes.Buffer
+	// 	buffer      bytes.Buffer
 	// 	existsData  bool
 	// 	filterFuncs []func(line []byte) ([]byte, error)
 	// 	awkVars     AWKVars

@@ -20,13 +20,13 @@ var (
 	// for Grep* methods
 	nullBytes = []byte{}
 	// bytes.Buffer growth to this limit
-	bufferSizeLimit = 1024
+	bufferSizeLimit = 512
 )
 
 // Reader - line by line Reader
 type Reader struct {
 	scanner     *bufio.Scanner
-	buffer      *bytes.Buffer
+	buffer      bytes.Buffer
 	existsData  bool
 	filterFuncs []func(line []byte) ([]byte, error)
 	awkVars     AWKVars
@@ -44,7 +44,6 @@ type AWKVars struct {
 func NewReader(reader io.Reader) *Reader {
 	lr := &Reader{
 		scanner:    bufio.NewScanner(reader),
-		buffer:     bytes.NewBuffer([]byte{}),
 		existsData: true,
 		awkVars: AWKVars{
 			RS: defaultRS,
