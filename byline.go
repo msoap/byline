@@ -145,7 +145,8 @@ func (lr *Reader) MapStringErr(filterFn func(string) (string, error)) *Reader {
 	})
 }
 
-// Each - processing each line
+// Each - processing each line.
+// Do not save the value of the byte slice, since it can change in the next filter-steps.
 func (lr *Reader) Each(filterFn func([]byte)) *Reader {
 	return lr.MapErr(func(line []byte) ([]byte, error) {
 		filterFn(line)
