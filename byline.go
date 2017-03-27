@@ -145,17 +145,15 @@ func (lr *Reader) MapStringErr(filterFn func(string) (string, error)) *Reader {
 	})
 }
 
-// Each - processing each line without changing the line
+// Each - processing each line
 func (lr *Reader) Each(filterFn func([]byte)) *Reader {
 	return lr.MapErr(func(line []byte) ([]byte, error) {
-		copyLine := make([]byte, len(line))
-		copy(copyLine, line)
-		filterFn(copyLine)
+		filterFn(line)
 		return line, nil
 	})
 }
 
-// EachString - processing each line without changing the line
+// EachString - processing each line as string
 func (lr *Reader) EachString(filterFn func(string)) *Reader {
 	return lr.MapErr(func(line []byte) ([]byte, error) {
 		filterFn(string(line))
