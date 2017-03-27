@@ -44,6 +44,20 @@ func Benchmark_NativeScannerBytes(b *testing.B) {
 	}
 }
 
+func Benchmark_NativeScannerOnlyCount(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		NR := 0
+		reader := bytes.NewReader(bytesSlice)
+		scanner := bufio.NewScanner(reader)
+		for scanner.Scan() {
+			NR++
+		}
+
+		require.NoError(b, scanner.Err())
+		require.Equal(b, linesCount, NR)
+	}
+}
+
 func Benchmark_MapBytes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		NR := 0
@@ -99,6 +113,30 @@ func Benchmark_GrepString(b *testing.B) {
 		}).ReadAll()
 		require.NoError(b, err)
 		require.True(b, len(res) > len(bytesSlice)/2-1)
+	}
+}
+
+func Benchmark_Each(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		NR := 0
+		reader := bytes.NewReader(bytesSlice)
+		err := byline.NewReader(reader).Each(func([]byte) {
+			NR++
+		}).Discard()
+		require.NoError(b, err)
+		require.Equal(b, linesCount, NR)
+	}
+}
+
+func Benchmark_EachString(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		NR := 0
+		reader := bytes.NewReader(bytesSlice)
+		err := byline.NewReader(reader).EachString(func(string) {
+			NR++
+		}).Discard()
+		require.NoError(b, err)
+		require.Equal(b, linesCount, NR)
 	}
 }
 
