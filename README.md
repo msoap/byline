@@ -185,15 +185,15 @@ An example in which we get odd lines (for `io.Reader` with 10000 lines):
 
     ❯ make benchmark
     go test -benchtime 5s -benchmem -bench .
-    Benchmark_NativeScannerBytes-4       	   20000	    313059 ns/op	  215080 B/op	      24 allocs/op
-    Benchmark_NativeScannerOnlyCount-4   	   30000	    217978 ns/op	    4160 B/op	       4 allocs/op
-    Benchmark_MapBytes-4                 	   10000	    562831 ns/op	  135184 B/op	      17 allocs/op
-    Benchmark_MapString-4                	    5000	   1395762 ns/op	  374000 B/op	   15018 allocs/op
-    Benchmark_Grep-4                     	   10000	    590799 ns/op	  135200 B/op	      18 allocs/op
-    Benchmark_GrepString-4               	   10000	   1107956 ns/op	  294416 B/op	   10019 allocs/op
-    Benchmark_Each-4                     	   10000	    933023 ns/op	  165426 B/op	   10013 allocs/op
-    Benchmark_EachString-4               	   10000	   1023951 ns/op	  165426 B/op	   10013 allocs/op
-    Benchmark_AWKMode-4                  	    1000	  11854648 ns/op	 3410392 B/op	   55466 allocs/op
+    Benchmark_NativeScannerBytes-4       	   20000	    312502 ns/op	  215080 B/op	      24 allocs/op
+    Benchmark_NativeScannerOnlyCount-4   	   30000	    217491 ns/op	    4160 B/op	       4 allocs/op
+    Benchmark_MapBytes-4                 	   10000	    567421 ns/op	  135184 B/op	      17 allocs/op
+    Benchmark_MapString-4                	    5000	   1408956 ns/op	  374000 B/op	   15018 allocs/op
+    Benchmark_Grep-4                     	   10000	    592100 ns/op	  135200 B/op	      18 allocs/op
+    Benchmark_GrepString-4               	    5000	   1151309 ns/op	  294416 B/op	   10019 allocs/op
+    Benchmark_Each-4                     	   10000	    562337 ns/op	    6201 B/op	      13 allocs/op
+    Benchmark_EachString-4               	   10000	    991528 ns/op	  165427 B/op	   10013 allocs/op
+    Benchmark_AWKMode-4                  	     500	  11865482 ns/op	 3410392 B/op	   55466 allocs/op
     PASS
 
 See `benchmark_test.go` for benchmark code

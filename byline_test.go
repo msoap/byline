@@ -257,7 +257,7 @@ func TestEach(t *testing.T) {
 		})
 	}
 
-	t.Run("Each cant change line inplace", func(t *testing.T) {
+	t.Run("Each can change line inplace", func(t *testing.T) {
 		reader := strings.NewReader("111\n222\n333")
 
 		out, err := byline.NewReader(reader).Each(func(line []byte) {
@@ -265,7 +265,7 @@ func TestEach(t *testing.T) {
 		}).ReadAllString()
 
 		require.NoError(t, err)
-		require.Equal(t, "111\n222\n333", out)
+		require.Equal(t, "A11\nA22\nA33", out)
 	})
 }
 
