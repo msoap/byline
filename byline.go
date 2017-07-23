@@ -34,8 +34,8 @@ type Reader struct {
 
 // AWKVars - settings for AWK mode, see man awk
 type AWKVars struct {
-	NR int            // number of current line (begin from 1)
-	NF int            // fields count in curent line
+	NR int            // number of the current line (begin from 1)
+	NF int            // number of fields in the current line
 	RS byte           // record separator, default is '\n'
 	FS *regexp.Regexp // field separator, default is `\s+`
 }
