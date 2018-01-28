@@ -152,7 +152,7 @@ reader := strings.NewReader(`1,name one,12.3#2,second row;7.1#3,three row;15.51`
 sum := 0.0
 err := byline.NewReader(reader).
 	SetRS('#').
-	SetFS(regexp.MustCompile(`,|;`)).
+	SetFS(regexp.MustCompile(`[,;]`)).
 	AWKMode(func(line string, fields []string, vars byline.AWKVars) (string, error) {
 		if vars.NF < 3 {
 			return "", fmt.Errorf("csv parse failed for %q", line)

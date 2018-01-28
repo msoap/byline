@@ -32,7 +32,7 @@ Some text
 		Grep(func(line []byte) bool {
 			return !bytes.HasPrefix(line, []byte("CSV"))
 		}).
-		SetFS(regexp.MustCompile(`,|;`)).
+		SetFS(regexp.MustCompile(`[,;]`)).
 		AWKMode(func(line string, fields []string, vars byline.AWKVars) (string, error) {
 			// skip header
 			if strings.HasPrefix(fields[0], "ID") {
@@ -75,7 +75,7 @@ Some text
 
 	sum := 0.0
 	lr := byline.NewReader(reader).
-		SetFS(regexp.MustCompile(`,|;`)).
+		SetFS(regexp.MustCompile(`[,;]`)).
 		AWKMode(func(line string, fields []string, vars byline.AWKVars) (string, error) {
 			if vars.NR == 1 {
 				// skip first line
