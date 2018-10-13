@@ -24,6 +24,3 @@ script:
   - if [[ "$IS_LATEST_GO" == "true" ]]; then
       go test -covermode=count -coverprofile=profile.cov ./... && goveralls -coverprofile=profile.cov -service=travis-ci || true;
     fi
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
