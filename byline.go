@@ -13,6 +13,9 @@ var (
 	// ErrOmitLine - error for Map*Err/AWKMode, for omitting current line
 	ErrOmitLine = errors.New("ErrOmitLine")
 
+	// ErrNilReader - error for provided reader being nil
+	ErrNilReader = errors.New("nil reader")
+
 	// default field separator
 	defaultFS = regexp.MustCompile(`\s+`)
 	// default line separator
@@ -80,7 +83,7 @@ func (lr *Reader) scanLinesBySep(data []byte, atEOF bool) (advance int, token []
 // Read - implement io.Reader interface
 func (lr *Reader) Read(p []byte) (n int, err error) {
 	if lr == nil {
-		return 0, errors.New("nil reader")
+		return 0, ErrNilReader
 	}
 	var (
 		bufErr, filterErr error
@@ -270,7 +273,7 @@ func (lr *Reader) AWKMode(filterFn func(line string, fields []string, vars AWKVa
 // Discard - read all content from Reader for side effect from filter functions
 func (lr *Reader) Discard() error {
 	if lr == nil {
-		return errors.New("nil reader")
+		return ErrNilReader
 	}
 	_, err := io.Copy(ioutil.Discard, lr)
 	return err
@@ -290,7 +293,7 @@ func (lr *Reader) ReadAllSlice() ([][]byte, error) {
 // ReadAll - read all content from Reader to slice of bytes
 func (lr *Reader) ReadAll() ([]byte, error) {
 	if lr == nil {
-		return []byte{}, errors.New("nil reader")
+		return []byte{}, ErrNilReader
 	}
 	return ioutil.ReadAll(lr)
 }
@@ -298,7 +301,7 @@ func (lr *Reader) ReadAll() ([]byte, error) {
 // ReadAllSliceString - read all content from Reader to string slice by lines
 func (lr *Reader) ReadAllSliceString() ([]string, error) {
 	if lr == nil {
-		return []string{}, errors.New("nil reader")
+		return []string{}, ErrNilReader
 	}
 	result := []string{}
 	err := lr.MapString(func(line string) string {
@@ -312,7 +315,7 @@ func (lr *Reader) ReadAllSliceString() ([]string, error) {
 // ReadAllString - read all content from Reader to one string
 func (lr *Reader) ReadAllString() (string, error) {
 	if lr == nil {
-		return "", errors.New("nil reader")
+		return "", ErrNilReader
 	}
 	result, err := ioutil.ReadAll(lr)
 	return string(result), err

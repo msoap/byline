@@ -385,13 +385,14 @@ func TestAWKModeWithError(t *testing.T) {
 }
 
 func TestReadAll(t *testing.T) {
-	t.Run("ReadAllEmptyReader", func(t *testing.T) {
+	t.Run("ReadAllNilReader", func(t *testing.T) {
 		var reader io.Reader
 		_, err := byline.NewReader(reader).
 			SetRS('#').
 			MapString(func(line string) string { return "<" + line }).
 			ReadAll()
-		require.Error(t, err)
+		require.Exactly(t, byline.ErrNilReader, err, "ReadAllNilReader")
+
 	})
 
 	t.Run("ReadAll", func(t *testing.T) {
