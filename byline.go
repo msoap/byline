@@ -42,6 +42,9 @@ type AWKVars struct {
 
 // NewReader - get new line by line Reader
 func NewReader(reader io.Reader) *Reader {
+	if reader == nil {
+		return nil
+	}
 	lr := &Reader{
 		scanner:    bufio.NewScanner(reader),
 		existsData: true,
@@ -76,6 +79,9 @@ func (lr *Reader) scanLinesBySep(data []byte, atEOF bool) (advance int, token []
 
 // Read - implement io.Reader interface
 func (lr *Reader) Read(p []byte) (n int, err error) {
+	if lr == nil {
+		return 0, errors.New("nil reader")
+	}
 	var (
 		bufErr, filterErr error
 		lineBytes         []byte
@@ -119,6 +125,9 @@ func (lr *Reader) Read(p []byte) (n int, err error) {
 
 // Map - set filter function for process each line
 func (lr *Reader) Map(filterFn func([]byte) []byte) *Reader {
+	if lr == nil {
+		return nil
+	}
 	return lr.MapErr(func(line []byte) ([]byte, error) {
 		return filterFn(line), nil
 	})
@@ -126,12 +135,18 @@ func (lr *Reader) Map(filterFn func([]byte) []byte) *Reader {
 
 // MapErr - set filter function for process each line, returns error if needed (io.EOF for example)
 func (lr *Reader) MapErr(filterFn func([]byte) ([]byte, error)) *Reader {
+	if lr == nil {
+		return nil
+	}
 	lr.filterFuncs = append(lr.filterFuncs, filterFn)
 	return lr
 }
 
 // MapString - set filter function for process each line as string
 func (lr *Reader) MapString(filterFn func(string) string) *Reader {
+	if lr == nil {
+		return nil
+	}
 	return lr.MapErr(func(line []byte) ([]byte, error) {
 		return []byte(filterFn(string(line))), nil
 	})
@@ -139,6 +154,9 @@ func (lr *Reader) MapString(filterFn func(string) string) *Reader {
 
 // MapStringErr - set filter function for process each line as string, returns error if needed (io.EOF for example)
 func (lr *Reader) MapStringErr(filterFn func(string) (string, error)) *Reader {
+	if lr == nil {
+		return nil
+	}
 	return lr.MapErr(func(line []byte) ([]byte, error) {
 		newString, err := filterFn(string(line))
 		return []byte(newString), err
@@ -148,6 +166,9 @@ func (lr *Reader) MapStringErr(filterFn func(string) (string, error)) *Reader {
 // Each - processing each line.
 // Do not save the value of the byte slice, since it can change in the next filter-steps.
 func (lr *Reader) Each(filterFn func([]byte)) *Reader {
+	if lr == nil {
+		return nil
+	}
 	return lr.MapErr(func(line []byte) ([]byte, error) {
 		filterFn(line)
 		return line, nil
@@ -156,6 +177,9 @@ func (lr *Reader) Each(filterFn func([]byte)) *Reader {
 
 // EachString - processing each line as string
 func (lr *Reader) EachString(filterFn func(string)) *Reader {
+	if lr == nil {
+		return nil
+	}
 	return lr.MapErr(func(line []byte) ([]byte, error) {
 		filterFn(string(line))
 		return line, nil
@@ -164,6 +188,9 @@ func (lr *Reader) EachString(filterFn func(string)) *Reader {
 
 // Grep - grep lines by func
 func (lr *Reader) Grep(filterFn func([]byte) bool) *Reader {
+	if lr == nil {
+		return nil
+	}
 	return lr.MapErr(func(line []byte) ([]byte, error) {
 		if filterFn(line) {
 			return line, nil
@@ -175,6 +202,9 @@ func (lr *Reader) Grep(filterFn func([]byte) bool) *Reader {
 
 // GrepString - grep lines as string by func
 func (lr *Reader) GrepString(filterFn func(string) bool) *Reader {
+	if lr == nil {
+		return nil
+	}
 	return lr.Grep(func(line []byte) bool {
 		return filterFn(string(line))
 	})
@@ -182,6 +212,9 @@ func (lr *Reader) GrepString(filterFn func(string) bool) *Reader {
 
 // GrepByRegexp - grep lines by regexp
 func (lr *Reader) GrepByRegexp(re *regexp.Regexp) *Reader {
+	if lr == nil {
+		return nil
+	}
 	return lr.Grep(func(line []byte) bool {
 		return re.Match(line)
 	})
@@ -189,18 +222,27 @@ func (lr *Reader) GrepByRegexp(re *regexp.Regexp) *Reader {
 
 // SetRS - set lines (records) separator
 func (lr *Reader) SetRS(rs byte) *Reader {
+	if lr == nil {
+		return nil
+	}
 	lr.awkVars.RS = rs
 	return lr
 }
 
 // SetFS - set field separator for AWK mode
 func (lr *Reader) SetFS(fs *regexp.Regexp) *Reader {
+	if lr == nil {
+		return nil
+	}
 	lr.awkVars.FS = fs
 	return lr
 }
 
 // AWKMode - process lines with AWK like mode
 func (lr *Reader) AWKMode(filterFn func(line string, fields []string, vars AWKVars) (string, error)) *Reader {
+	if lr == nil {
+		return nil
+	}
 	return lr.MapErr(func(line []byte) ([]byte, error) {
 		addRS := false
 		RS := []byte{lr.awkVars.RS}
@@ -227,6 +269,9 @@ func (lr *Reader) AWKMode(filterFn func(line string, fields []string, vars AWKVa
 
 // Discard - read all content from Reader for side effect from filter functions
 func (lr *Reader) Discard() error {
+	if lr == nil {
+		return errors.New("nil reader")
+	}
 	_, err := io.Copy(ioutil.Discard, lr)
 	return err
 }
@@ -244,11 +289,17 @@ func (lr *Reader) ReadAllSlice() ([][]byte, error) {
 
 // ReadAll - read all content from Reader to slice of bytes
 func (lr *Reader) ReadAll() ([]byte, error) {
+	if lr == nil {
+		return []byte{}, errors.New("nil reader")
+	}
 	return ioutil.ReadAll(lr)
 }
 
 // ReadAllSliceString - read all content from Reader to string slice by lines
 func (lr *Reader) ReadAllSliceString() ([]string, error) {
+	if lr == nil {
+		return []string{}, errors.New("nil reader")
+	}
 	result := []string{}
 	err := lr.MapString(func(line string) string {
 		result = append(result, line)
@@ -260,6 +311,9 @@ func (lr *Reader) ReadAllSliceString() ([]string, error) {
 
 // ReadAllString - read all content from Reader to one string
 func (lr *Reader) ReadAllString() (string, error) {
+	if lr == nil {
+		return "", errors.New("nil reader")
+	}
 	result, err := ioutil.ReadAll(lr)
 	return string(result), err
 }
