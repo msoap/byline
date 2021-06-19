@@ -5,6 +5,8 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  schedule:
+    - cron: '0 12 * * 0'
 
 jobs:
 
@@ -35,3 +37,6 @@ jobs:
     - name: Test
       run: go test -v ./...
 
+    - name: Coveralls
+      if: ${{ startsWith(matrix.go, '1.16') && github.event_name == 'push' }}
+      run: echo HELLO; printenv | sort
