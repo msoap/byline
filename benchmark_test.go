@@ -143,7 +143,7 @@ func Benchmark_EachString(b *testing.B) {
 func Benchmark_AWKMode(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		reader := bytes.NewReader(bytesSlice)
-		res, err := byline.NewReader(reader).AWKMode(func(line string, fields []string, vars byline.AWKVars) (string, error) {
+		res, err := byline.NewReader(reader).AWKMode(func(line string, _ []string, vars byline.AWKVars) (string, error) {
 			if vars.NR%2 == 0 {
 				return "", byline.ErrOmitLine
 			}

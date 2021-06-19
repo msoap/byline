@@ -308,7 +308,7 @@ func TestGrep(t *testing.T) {
 			reader := strings.NewReader(row.in)
 
 			i := 0
-			lr := byline.NewReader(reader).Grep(func(line []byte) bool {
+			lr := byline.NewReader(reader).Grep(func(_ []byte) bool {
 				i++
 				return !(i == 2)
 			})

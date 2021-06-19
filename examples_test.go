@@ -33,7 +33,7 @@ Some text
 			return !bytes.HasPrefix(line, []byte("CSV"))
 		}).
 		SetFS(regexp.MustCompile(`[,;]`)).
-		AWKMode(func(line string, fields []string, vars byline.AWKVars) (string, error) {
+		AWKMode(func(line string, fields []string, _ byline.AWKVars) (string, error) {
 			// skip header
 			if strings.HasPrefix(fields[0], "ID") {
 				return "", byline.ErrOmitLine
