@@ -21,13 +21,17 @@ jobs:
       with:
         go-version: ${{ matrix.go }}
 
+    - name: errcheck
+      run: |
+        go get github.com/kisielk/errcheck
+        errcheck -verbose ./...
+
+    - name: gofmt check
+      run: diff <(gofmt -d .) <(echo -n "")
+
     - name: Build
       run: go build -v ./...
 
     - name: Test
       run: go test -v ./...
 
-    - name: Errcheck
-      run: |
-        go get github.com/kisielk/errcheck
-        errcheck ./...
