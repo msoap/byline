@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"testing"
 
-	 "github.com/msoap/byline"
+	"github.com/msoap/byline"
 	"github.com/stretchr/testify/require"
 )
 
 const linesCount = 10000
 
 var (
-	bytesSlice   =  getBytes()
+	bytesSlice = getBytes()
 )
 
 func getBytes() []byte {
