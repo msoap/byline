@@ -38,7 +38,7 @@ jobs:
     - name: Coveralls
       if: ${{ startsWith(matrix.go, '1.16') && github.event_name == 'push' }}
       env:
-          COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         go get github.com/mattn/goveralls
         go test -covermode=count -coverprofile=profile.cov ./...
