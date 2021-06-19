@@ -23,20 +23,23 @@ jobs:
       with:
         go-version: ${{ matrix.go }}
 
+    - name: Install errcheck
+      run: go get github.com/kisielk/errcheck
+
     - name: errcheck
-      run: |
-        go get github.com/kisielk/errcheck
-        errcheck -verbose ./...
+      run: errcheck -verbose ./...
 
     - name: gofmt check
       run: diff <(gofmt -d .) <(echo -n "")
 
-    - name: Build
-      run: go build -v ./...
-
     - name: Test
-      run: go test -v ./...
+      run: go test -race -v ./...
 
     - name: Coveralls
       if: ${{ startsWith(matrix.go, '1.16') && github.event_name == 'push' }}
-      run: echo HELLO; printenv | sort
+      env:
+          COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+      run: |
+        go get github.com/mattn/goveralls
+        go test -covermode=count -coverprofile=profile.cov ./...
+        goveralls -coverprofile=profile.cov -service=github
