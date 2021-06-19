@@ -26,3 +26,8 @@ jobs:
 
     - name: Test
       run: go test -v ./...
+
+    - name: Errcheck
+      run: |
+        go get github.com/kisielk/errcheck
+        errcheck ./...
