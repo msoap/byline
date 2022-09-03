@@ -19,7 +19,7 @@ var (
 func getBytes() []byte {
 	var data bytes.Buffer
 	for i := 0; i < linesCount; i++ {
-		_, _ = fmt.Fprintf(&data, fmt.Sprintf("%d line\n", i))
+		_, _ = fmt.Fprintf(&data, "%d line\n", i)
 	}
 
 	return data.Bytes()

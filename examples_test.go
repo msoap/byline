@@ -91,7 +91,7 @@ Some text
 				return "", fmt.Errorf("csv parse failed for %q", line)
 			}
 
-			if price, err := strconv.ParseFloat(fields[2], 10); err != nil {
+			if price, err := strconv.ParseFloat(fields[2], 64); err != nil {
 				return "", err
 			} else if price < 10 {
 				return "", byline.ErrOmitLine
