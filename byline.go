@@ -31,6 +31,7 @@ type Reader struct {
 	scanner     *bufio.Scanner
 	buffer      bytes.Buffer
 	existsData  bool
+	pendingErr  error
 	filterFuncs []func(line []byte) ([]byte, error)
 	awkVars     AWKVars
 }
@@ -86,8 +87,9 @@ func (lr *Reader) Read(p []byte) (n int, err error) {
 		return 0, ErrNilReader
 	}
 	var (
-		bufErr, filterErr error
-		lineBytes         []byte
+		bufErr    = lr.pendingErr
+		filterErr error
+		lineBytes []byte
 	)
 
 	for lr.existsData && bufErr == nil && lr.buffer.Len() < bufferSizeLimit {
@@ -122,6 +124,12 @@ func (lr *Reader) Read(p []byte) (n int, err error) {
 	if err != nil && bufErr == nil {
 		bufErr = err
 	}
+
+	if lr.buffer.Len() > 0 {
+		lr.pendingErr = bufErr
+		return n, nil
+	}
+	lr.pendingErr = nil
 
 	return n, bufErr
 }

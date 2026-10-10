@@ -2,6 +2,7 @@ package byline_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -13,6 +14,90 @@ import (
 	"github.com/msoap/byline"
 	"github.com/stretchr/testify/require"
 )
+
+type errorAfterDataReader struct {
+	data     *strings.Reader
+	err      error
+	together bool
+}
+
+func (r *errorAfterDataReader) Read(p []byte) (int, error) {
+	n, err := r.data.Read(p)
+	if err == io.EOF || r.together && r.data.Len() == 0 {
+		err = r.err
+	}
+	return n, err
+}
+
+func TestReadScannerErrorDrainsOutput(t *testing.T) {
+	want := strings.Repeat("a", 999) + "\n"
+	wantErr := errors.New("source failure")
+	for _, together := range []bool{false, true} {
+		for _, size := range []int{1, 4, 511, 512, 513, 2048} {
+			t.Run(fmt.Sprintf("together=%t/size=%d", together, size), func(t *testing.T) {
+				lr := byline.NewReader(&errorAfterDataReader{
+					data: strings.NewReader(want), err: wantErr, together: together,
+				})
+				var got bytes.Buffer
+				buf := make([]byte, size)
+				for reads := 0; ; reads++ {
+					require.Less(t, reads, len(want)+1)
+					n, err := lr.Read(buf)
+					_, _ = got.Write(buf[:n])
+					if err != nil {
+						require.Equal(t, wantErr, err)
+						break
+					}
+				}
+				require.Equal(t, want, got.String())
+				n, err := lr.Read(buf)
+				require.Zero(t, n)
+				require.Equal(t, wantErr, err)
+			})
+		}
+	}
+}
+
+func TestReadFilterErrorDrainsOutput(t *testing.T) {
+	for _, filterErr := range []error{io.EOF, errors.New("filter failure")} {
+		for _, output := range []string{"", "stop\n", strings.Repeat("b", 1100) + "\n"} {
+			for _, size := range []int{1, 4, 511, 512, 513, 2048} {
+				t.Run(fmt.Sprintf("error=%s/output=%d/size=%d", filterErr, len(output), size), func(t *testing.T) {
+					calls := 0
+					lr := byline.NewReader(strings.NewReader("first\nstop\ntail\n")).MapStringErr(func(line string) (string, error) {
+						calls++
+						if line == "stop\n" {
+							return output, filterErr
+						}
+						return line, nil
+					})
+					var got bytes.Buffer
+					buf := make([]byte, size)
+					for reads := 0; ; reads++ {
+						require.Less(t, reads, len(output)+10)
+						n, err := lr.Read(buf)
+						_, _ = got.Write(buf[:n])
+						if err != nil {
+							require.Equal(t, filterErr, err)
+							break
+						}
+						if reads == 0 {
+							n, err = lr.Read(nil)
+							require.Zero(t, n)
+							require.NoError(t, err)
+						}
+					}
+					require.Equal(t, "first\n"+output, got.String())
+					require.Equal(t, 2, calls)
+					tail, err := lr.ReadAllString()
+					require.NoError(t, err)
+					require.Equal(t, "tail\n", tail)
+					require.Equal(t, 3, calls)
+				})
+			}
+		}
+	}
+}
 
 func TestMap(t *testing.T) {
 	reader := strings.NewReader("111\n222\n333")

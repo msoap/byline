@@ -131,6 +131,7 @@ type Reader struct {
 	scanner     *bufio.Scanner
 	buffer      bytes.Buffer
 	existsData  bool
+	pendingErr  error
 	filterFuncs []func(line []byte) ([]byte, error)
 	awkVars     AWKVars
 }
