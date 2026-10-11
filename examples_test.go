@@ -164,6 +164,7 @@ func ExampleReader_Grep() {
 	// 	scanner     *bufio.Scanner
 	// 	buffer      bytes.Buffer
 	// 	existsData  bool
+	// 	deferredErr error
 	// 	filterFuncs []func(line []byte) ([]byte, error)
 	// 	awkVars     AWKVars
 	// }

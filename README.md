@@ -43,6 +43,7 @@ result, err := byline.NewReader(reader).MapString(func(line string) string {retu
     Attention! Use `AWKMode()` with caution on large data sets, see [Overheads](#overheads) below.
 
 `Map*Err`, `AWKMode` methods can return `byline.ErrOmitLine` - error for discard processing of current line.
+`Read` delivers all buffered output before reporting a source or filter error. After a filter error, a later read resumes with the next line.
 
 ## Helper methods
 
@@ -131,6 +132,7 @@ type Reader struct {
 	scanner     *bufio.Scanner
 	buffer      bytes.Buffer
 	existsData  bool
+	deferredErr error
 	filterFuncs []func(line []byte) ([]byte, error)
 	awkVars     AWKVars
 }

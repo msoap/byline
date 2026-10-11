@@ -31,6 +31,7 @@ type Reader struct {
 	scanner     *bufio.Scanner
 	buffer      bytes.Buffer
 	existsData  bool
+	deferredErr error
 	filterFuncs []func(line []byte) ([]byte, error)
 	awkVars     AWKVars
 }
@@ -80,32 +81,36 @@ func (lr *Reader) scanLinesBySep(data []byte, atEOF bool) (advance int, token []
 	return 0, nil, nil
 }
 
-// Read - implement io.Reader interface
-func (lr *Reader) Read(p []byte) (n int, err error) {
+// Read implements io.Reader. It returns buffered output before an error from
+// the source or a filter. After a filter error, a later read resumes with the
+// following line. A zero-length read does not advance the reader.
+func (lr *Reader) Read(p []byte) (int, error) {
 	if lr == nil {
 		return 0, ErrNilReader
 	}
-	var (
-		bufErr, filterErr error
-		lineBytes         []byte
-	)
+	if len(p) == 0 {
+		return 0, nil
+	}
 
-	for lr.existsData && bufErr == nil && lr.buffer.Len() < bufferSizeLimit {
-		if lr.existsData = lr.scanner.Scan(); !lr.existsData {
+	for lr.existsData && lr.deferredErr == nil && lr.buffer.Len() < bufferSizeLimit {
+		if !lr.scanner.Scan() {
+			lr.existsData = false
+			lr.deferredErr = lr.scanner.Err()
 			break
 		}
 
-		lineBytes = lr.scanner.Bytes()
+		lineBytes := lr.scanner.Bytes()
 		lr.awkVars.NR++
 
 		for _, filterFunc := range lr.filterFuncs {
+			var filterErr error
 			lineBytes, filterErr = filterFunc(lineBytes)
 			if filterErr != nil {
 				switch filterErr {
 				case ErrOmitLine:
 					lineBytes = nullBytes
 				default:
-					bufErr = filterErr
+					lr.deferredErr = filterErr
 				}
 				break
 			}
@@ -114,16 +119,19 @@ func (lr *Reader) Read(p []byte) (n int, err error) {
 		_, _ = lr.buffer.Write(lineBytes) // #nosec - err always is nil
 	}
 
-	if !lr.existsData && bufErr == nil {
-		bufErr = lr.scanner.Err()
+	if lr.buffer.Len() > 0 {
+		return lr.buffer.Read(p)
 	}
-
-	n, err = lr.buffer.Read(p)
-	if err != nil && bufErr == nil {
-		bufErr = err
+	if lr.deferredErr != nil {
+		err := lr.deferredErr
+		lr.deferredErr = nil
+		return 0, err
 	}
-
-	return n, bufErr
+	// A source error remains terminal after its deferred report is consumed.
+	if err := lr.scanner.Err(); err != nil {
+		return 0, err
+	}
+	return 0, io.EOF
 }
 
 // Map - set filter function for process each line
